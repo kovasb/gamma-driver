@@ -10,7 +10,7 @@ Benefits:
  
 WIP. API design still being assessed. 
 
-# wip
+# getting new semantics without breaking the world
 
 Graphics drivers contend with two issues: the complexity of resource managment, and the complexity of API migration due to changes in resource capabilities and demand for new abstractions. 
 
