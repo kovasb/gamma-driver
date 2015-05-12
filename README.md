@@ -1,6 +1,6 @@
 # gamma-driver
 
-Gamma-Driver is a framework for driving the WebGL API: installing shaders, setting up buffers, issuing draw commands, etc. It ships with a driver that greatly simpifies the majority of common use cases, and also allows for increased composition of and reasoning about resources. Because customized needs inevitably arise, it also offers a set of pragmatic mechanisms for creating customized drivers that embody additional semantics or optimizations.
+Gamma-Driver is a library for driving the WebGL API: installing shaders, setting up buffers, issuing draw commands, etc. It ships with a driver that greatly simpifies the majority of common use cases, and also allows for increased composition of and reasoning about resources. Because customized needs inevitably arise, it also offers a set of pragmatic mechanisms for creating customized drivers that embody additional semantics or optimizations.
 
 Gamma-Driver is suitable both for beginners looking to get up and running quickly, and by experts needing to implement specialized needs and optimizations. 
 
