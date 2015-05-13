@@ -6,21 +6,35 @@
             [gamma-driver.protocols :as proto]))
 
 
+;; WebGLResourceDriver implementations wrap the low-level constructors fns
+;; found in common.resource.cljs with produce
+;; this lets us reuse prexisting array buffers
+
 (defn produce [driver constructor-fn spec]
   (let [{:keys [gl resource-state mapping-fn]} driver]
-    (let [k (mapping-fn spec)
+    (let [
+          ;; given input, apply mapping-fn to get its key in the resource-state map
+          k (mapping-fn spec)
+          ;; if already there, merge spec in
          spec (if-let [x (@resource-state k)] (merge x spec) spec)
+          ;;  call constructor fn with the merged map
          val (constructor-fn (proto/gl driver) spec)]
      (swap! resource-state assoc k val)
      val)))
 
 
+;; this part wraps resource binding, eg connecting buffers to attributes
+;; input-binder is the fn from variable.cljs
+;; this keeps track of what resource was bound to what [program variable] pair
+;; -> allows us to see if we've inputted data for all variables, instead of getting
+;;    just a black screen
+;; -> allows us to compute how many vertices to draw, rather than calculating by hand
+;; keeps track of this on the :input-state atom on driver
 (defn default-input-fn [driver program input-binder variable spec]
   (let [{:keys [input-state gl]} driver
         i (input-binder gl program variable spec)]
     (swap! input-state assoc-in [program variable] spec)
     i))
-
 
 
 (defrecord BasicDriver [gl resource-state mapping-fn input-state input-fn]
@@ -73,51 +87,79 @@
   (BasicDriver.
     gl
     (atom {})
-    (fn [x] (or (:id x) (:variables x) x))
+    (fn [x] (or (:id x) (:element x) x))
     (atom {})
     default-input-fn))
 
 
+;; want to dispatch to a particular bind* method
+;; each one will handle a case like attributes versus textures etc
+(defn bind-dispatch-fn [element data]
+  (if (= :variable (:tag element))
+    (cond
+      (= :attribute (:storage element)) :attribute
+      (and
+        (= :uniform (:storage element))
+        (= :sampler2D (:type element))) :texture-uniform
+      (= :uniform (:storage element)) :uniform)
+    (cond
+      (= :element-index (:tag element)) :element-index
+      (= :variable-array (:tag element)) :variable-array)))
 
-(defn variable-input [driver program variable input]
-  (cond
-    (= :attribute (:storage variable))
-    (proto/attribute-input
+
+(defmulti bind*
+          (fn [driver program element data]
+            (bind-dispatch-fn element data)))
+
+
+(defmethod bind* :attribute [driver program element input]
+  (proto/attribute-input
+    driver
+    program
+    element
+    (proto/array-buffer
       driver
-      program
-      variable
-      (proto/array-buffer driver (assoc input :usage :static-draw)))
+      (let [input (if (map? input) input {:data input})]
+        (assoc input
+          :data (js/Float32Array. (clj->js (flatten (:data input))))
+          :usage :static-draw
+          :element element
+          :count (count (:data input)))))))
 
-    (and (= :uniform (:storage variable)) (= :sampler2D (:type variable)))
-    (proto/texture-uniform-input
-      driver
-      program
-      variable
-      (proto/texture driver (if (map? (:data input))
-                              (:data input)
-                              {:image (:data input) :texture-id 0})))
+(defmethod bind* :uniform [driver program element input]
+  (proto/uniform-input
+    driver
+    program
+    element
+    (let [input (if (map? input) input {:data input})]
+      (assoc input
+        :element element
+        :data (clj->js (flatten [(:data input)]))))))
 
-    (= :uniform (:storage variable))
-    (proto/uniform-input driver program variable (:data input))))
+
+(comment
+  (defmethod bind* :texture-uniform [driver program variable input]
+   (proto/texture-uniform-input
+     driver
+     program
+     variable
+     (proto/texture
+       driver
+       ;; not sure if this is the right logic
+       (if (map? (:data input))
+         (:data input)
+         {:image (:data input) :texture-id 0})))))
+
+(comment
+  (defmethod bind* :element-array [driver program variable input]
+   (proto/element-array-buffer driver (assoc input :usage :static-draw))))
 
 
 (defn bind [driver program data]
   (.useProgram (:gl driver) (:program program))
-  (doall
-    (flatten
-     (for [d data]
-       (for [v (:variables d)]
-         (variable-input driver program v d))))))
-
-
-(defn normalize-data [data]
-  (map (fn [[k v]]
-         (if (= :attribute (:storage k))
-           {:variables [k]
-            :data      (js/Float32Array. (clj->js (flatten v)))
-            :count     (count v)}
-           {:variables [k] :data v}))
-       data))
+  (dorun
+    (map (fn [[k v]] (bind* driver program k v))
+         data)))
 
 (defn program-inputs-state [driver program]
   (let [s (@(:input-state driver) program)]
@@ -156,6 +198,14 @@
 
 
 
+
+
+(comment
+  (bind-dispatch-fn {:tag :variable :storage :attribute} nil)
+  (bind-dispatch-fn {:tag :variable :storage :uniform} nil)
+  (bind-dispatch-fn {:tag :variable :storage :uniform :type :sampler2D} nil)
+  (bind-dispatch-fn {:tag :element-index} nil)
+  (bind-dispatch-fn {:tag :variable-array} nil))
 
 
 

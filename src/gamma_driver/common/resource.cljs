@@ -56,7 +56,16 @@
 
 
 
-(defn element-array-buffer [gl spec])
+(defn element-array-buffer [gl spec]
+  (let [buffer (or (:element-array-buffer spec) (.createBuffer gl))]
+    (.bindBuffer gl ggl/ELEMENT_ARRAY_BUFFER buffer)
+    (.bufferData
+      gl
+      ggl/ELEMENT_ARRAY_BUFFER
+      (:data spec)
+      (or ({:static-draw ggl/STATIC_DRAW :dynamic-draw ggl/DYNAMIC_DRAW} (:usage spec))
+          ggl/STATIC_DRAW))
+    (assoc spec :element-array-buffer buffer)))
 
 
 ;; parts of creating texture

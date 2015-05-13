@@ -1,9 +1,9 @@
-(ns gamma-webgl-driver.drivers.minimal
-  (:require [gamma-webgl-driver.common.resource :as r]
-            [gamma-webgl-driver.common.variable :as v]
-            [gamma-webgl-driver.common.configure :as c]
-            [gamma-webgl-driver.common.draw :as d]
-            [gamma-webgl-driver.protocols :as proto]))
+(ns gamma-driver.drivers.minimal
+  (:require [gamma-driver.common.resource :as r]
+            [gamma-driver.common.variable :as v]
+            [gamma-driver.common.configure :as c]
+            [gamma-driver.common.draw :as d]
+            [gamma-driver.protocols :as proto]))
 
 
 

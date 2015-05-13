@@ -35,13 +35,11 @@
 (defn uniform-location [gl program uniform]
   (.getUniformLocation gl (:program program) (:name uniform)))
 
-(defn canonicalize-uniform-input [input]
-  (clj->js input))
 
 (defn uniform-input [gl program uniform input]
   (let [location (uniform-location gl program uniform)
         type (:type uniform)
-        data (canonicalize-uniform-input input)]
+        data (:data input)]
     (case type
       :bool (.uniform1fv gl location data)
       :bvec2 (.uniform2fv gl location data)
