@@ -36,18 +36,17 @@
 
 (defn draw-elements
   ([gl program opts]
-   (.useProgram gl (:program program))
-   (.drawElements
-     gl
-     (draw-modes (:draw-mode opts))
-     (:count opts)
-     (element-types (:type opts))
-     (* ({:unsigned-byte 1 :unsigned-short 2} (:type opts)) (:first opts))))
+     (let [draw-mode (draw-modes (:draw-mode opts))
+           cnt       (:count opts)
+           data-type (element-types (:index-type opts))
+           offset    (* (get {:unsigned-byte 1 :unsigned-short 2} (:index-type opts)) (:first opts))]
+       (.useProgram gl (:program program))
+       (.drawElements gl draw-mode cnt data-type offset)))
   ([gl program opts target]
-    (.bindFramebuffer gl ggl/FRAMEBUFFER (:frame-buffer target))
-    (draw-elements gl program opts)
-    (.bindFramebuffer gl ggl/FRAMEBUFFER nil)
-    target))
+     (.bindFramebuffer gl ggl/FRAMEBUFFER (:frame-buffer target))
+     (draw-elements gl program opts)
+     (.bindFramebuffer gl ggl/FRAMEBUFFER nil)
+     target))
 
 
 
