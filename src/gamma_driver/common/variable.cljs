@@ -32,6 +32,10 @@
     (.enableVertexAttribArray gl location)
     input))
 
+(defn element-index-input [gl program indices input]
+  (.bindBuffer gl ggl/ELEMENT_ARRAY_BUFFER (:element-array-buffer input))
+  input)
+
 (defn uniform-location [gl program uniform]
   (.getUniformLocation gl (:program program) (:name uniform)))
 

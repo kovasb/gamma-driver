@@ -16,6 +16,7 @@
 
 (defprotocol WebGLVariableDriver
   (attribute-input [this program attribute input])
+  (element-index-input [this program attribute input])
   (texture-uniform-input [this program uniform input])
   (uniform-input [this program uniform input]))
 
