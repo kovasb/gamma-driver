@@ -157,9 +157,8 @@
 
 (defn bind [driver program data]
   (.useProgram (:gl driver) (:program program))
-  (dorun
-    (map (fn [[k v]] (bind* driver program k v))
-         data)))
+  (doseq [[k v] data]
+    (bind* driver program k v)))
 
 (defn program-inputs-state [driver program]
   (let [s (@(:input-state driver) program)]
