@@ -61,13 +61,6 @@
       v/attribute-input
       attribute
       input))
-  (element-index-input [this program attribute input]
-    (input-fn
-      this
-      program
-      v/element-index-input
-      attribute
-      input))
   (texture-uniform-input [this program uniform input]
     (input-fn
       this
@@ -144,20 +137,15 @@
         :data (clj->js (flatten [(:data input)]))))))
 
 (defmethod bind* :element-index [driver program element input]
-  (proto/element-index-input
+  (proto/element-array-buffer
     driver
-    program
-    element
-    (proto/element-array-buffer
-      driver
-      (let [input (if (map? input) input {:data input})]
-        (assoc input
-          ;; Probably already flattened, but keeping it here for now
-          :data (js/Uint16Array. (clj->js (flatten (:data input))))
-          :usage :static-draw
-          :element element
-          :test :work
-          :count (count (:data input)))))))
+    (let [input (if (map? input) input {:data input})]
+      (assoc input
+        ;; Probably already flattened, but keeping it here for now
+        :data (js/Uint16Array. (clj->js (flatten (:data input))))
+        :usage :static-draw
+        :element element
+        :count (count (:data input))))))
 
 
 (defmethod bind* :texture-uniform [driver program variable input]
@@ -214,21 +202,6 @@
       {:draw-mode (:draw-mode opts :triangles)
        :first 0
        :count (draw-count driver program)})))
-
-(defn draw-elements [driver program data opts]
-  (bind driver program data)
-  (if (not (input-complete? driver program))
-    (throw (js/Error. "Program inputs are incomplete."))
-    (proto/draw-elements
-     driver
-     program
-     ;; should supply below as an arg, with defaults
-     {:draw-mode (:draw-mode opts :triangles)
-      :first 0
-      ;; Should we just throw an error if :index-type isn't specified,
-      ;; rather than default to :unsigned-short?  Seems kinder.
-      :index-type (:draw-type opts :unsigned-short)
-      :count (:count opts)})))
 
 
 
