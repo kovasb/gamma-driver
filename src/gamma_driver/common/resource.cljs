@@ -46,11 +46,11 @@
   (let [buffer (or (:array-buffer spec) (.createBuffer gl))]
     (.bindBuffer gl ggl/ARRAY_BUFFER buffer)
     (.bufferData
-      gl
-      ggl/ARRAY_BUFFER
-      (:data spec)
-      (or ({:static-draw ggl/STATIC_DRAW :dynamic-draw ggl/DYNAMIC_DRAW} (:usage spec))
-          ggl/STATIC_DRAW))
+     gl
+     ggl/ARRAY_BUFFER
+     (:data spec)
+     (or ({:static-draw ggl/STATIC_DRAW :dynamic-draw ggl/DYNAMIC_DRAW} (:usage spec))
+         ggl/STATIC_DRAW))
     (assoc spec :array-buffer buffer)))
 
 
