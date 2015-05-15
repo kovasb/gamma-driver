@@ -137,15 +137,16 @@
         :data (clj->js (flatten [(:data input)]))))))
 
 (defmethod bind* :element-index [driver program element input]
-  (proto/element-array-buffer
-    driver
-    (let [input (if (map? input) input {:data input})]
-      (assoc input
-        ;; Probably already flattened, but keeping it here for now
-        :data (js/Uint16Array. (clj->js (flatten (:data input))))
-        :usage :static-draw
-        :element element
-        :count (count (:data input))))))
+  (let [spec (let [input (if (map? input)
+                           input
+                           {:data input})]
+               (assoc input
+                 ;; Probably already flattened, but keeping it here for now
+                 :data (js/Uint16Array. (clj->js (flatten (:data input))))
+                 :usage :static-draw
+                 :element element
+                 :count (count (:data input))))]
+    (proto/element-array-buffer driver spec)))
 
 
 (defmethod bind* :texture-uniform [driver program variable input]
@@ -159,10 +160,6 @@
     (if (map? (:data input))
       (:data input)
       {:image (:data input) :texture-id 0}))))
-
-(comment
-  (defmethod bind* :element-array [driver program variable input]
-   (proto/element-array-buffer driver (assoc input :usage :static-draw))))
 
 
 (defn bind [driver program data]
@@ -191,7 +188,7 @@
           (:count v)))
       (@(:input-state driver) program))))
 
-(defn draw-program [driver program data & [opts]]
+(defn draw-arrays [driver program data & [opts]]
   (bind driver program data)
   (if (not (input-complete? driver program))
     (throw (js/Error. "Program inputs are incomplete."))
@@ -202,6 +199,25 @@
       {:draw-mode (:draw-mode opts :triangles)
        :first 0
        :count (draw-count driver program)})))
+
+;; this is will deprecated very soon
+(defn draw-elements [driver program data opts]
+  (bind driver program data)
+  (if (not (input-complete? driver program))
+    (throw (js/Error. "Program inputs are incomplete."))
+    (let [index-type (-> data
+                         (get {:tag :element-index})
+                         (:type :unsigned-short))]
+      (proto/draw-elements
+       driver
+       program
+       ;; should supply below as an arg, with defaults
+       {:draw-mode (:draw-mode opts :triangles)
+        :first 0
+        ;; Should we just throw an error if :index-type isn't specified,
+        ;; rather than default to :unsigned-short?  Seems kinder.
+        :index-type index-type
+        :count (:count opts)}))))
 
 
 
