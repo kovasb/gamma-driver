@@ -200,7 +200,6 @@
        :first 0
        :count (draw-count driver program)})))
 
-;; this is will deprecated very soon
 (defn draw-elements [driver program data opts]
   (bind driver program data)
   (if (not (input-complete? driver program))
