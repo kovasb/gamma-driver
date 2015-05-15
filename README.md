@@ -4,6 +4,12 @@ Gamma-Driver simplifies manipulating stateful WebGL resources. It models the Web
 
 Gamma-Driver is very WIP, APIs are still in flux.
 
+# Installation
 
+Add the following to your project.clj's :dependencies
+
+```clojure
+[kovasb/gamma-driver "0.1.0-SNAPSHOT"]
+```
 
 
