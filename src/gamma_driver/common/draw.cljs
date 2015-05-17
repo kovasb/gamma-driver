@@ -1,4 +1,5 @@
 (ns gamma-driver.common.draw
+  (:refer-clojure :exclude [mask])
   (:require [goog.webgl :as ggl]))
 
 
