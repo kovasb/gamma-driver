@@ -119,12 +119,18 @@
     element
     (proto/array-buffer
       driver
-      (let [input (if (map? input) input {:data input})]
+      (let [input (if (map? input) input {:data input})
+            data (:data input)]
         (assoc input
-          :data (js/Float32Array. (clj->js (flatten (:data input))))
+          :data (if (.-buffer data)
+                  data
+                  (js/Float32Array. (clj->js (flatten data))))
           :usage :static-draw
           :element element
-          :count (count (:data input)))))))
+          :count (if-let [c (:count input)]
+                   c
+                   (if (vector? data)
+                     (count data))))))))
 
 (defmethod bind* :uniform [driver program element input]
   (proto/uniform-input
