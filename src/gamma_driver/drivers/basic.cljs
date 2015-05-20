@@ -163,9 +163,7 @@
    (proto/texture
     driver
     ;; not sure if this is the right logic
-    (if (map? (:data input))
-      (:data input)
-      {:image (:data input) :texture-id 0}))))
+    input)))
 
 
 (defn bind [driver program data]

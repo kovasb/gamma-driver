@@ -164,6 +164,26 @@
   )
 
 
+;; need: mipmap,
+;; level-of-detail,
+;; different cubemap targets
+;; pixel-store parameters
+
+(comment
+  {:target :2d}
+  {:target {:cube-map {:x true}}}
+  ;; want to set up cubemap in one step
+  {:tag :cube-map :faces {:x [] :y [] :z []}}
+
+  {:tag :texture-2d :data {:faces {:x []}}}
+  {:tag :texture-cube-map}
+
+  ;; can texture options vary on a per-face basis?
+
+
+
+  )
+
 
 (defn texture [gl spec]
   ;(println spec)
