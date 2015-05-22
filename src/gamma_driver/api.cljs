@@ -106,7 +106,8 @@
     (gdp/bind this program spec)
     (bind/bind
       ;; need to pass these in to avoid cyclic dependency
-      {:array-buffer array-buffer
+      {:program program
+       :array-buffer array-buffer
        :element-array-buffer element-array-buffer
        :texture texture
        :bind-attribute       bind-attribute
