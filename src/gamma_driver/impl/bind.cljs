@@ -83,7 +83,8 @@
 (defn bind [fns driver program data]
   (let [p ((:program fns) driver program)]
     (doseq [[k v] data]
-      (bind* fns driver p k v))))
+      (bind* fns driver p k v))
+    p))
 
 
 ;; bind should return the program or the driver?
