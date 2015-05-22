@@ -19,8 +19,8 @@
 
 
 (defmethod bind* :attribute [fns driver program element input]
-  (let [{:keys [attribute-input array-buffer]} fns]
-    (attribute-input
+  (let [{:keys [bind-attribute array-buffer]} fns]
+    (bind-attribute
      driver
      program
      element
@@ -40,8 +40,8 @@
                       (count data)))))))))
 
 (defmethod bind* :uniform [fns driver program element input]
-  (let [{:keys [uniform-input]} fns]
-    (uniform-input
+  (let [{:keys [bind-uniform]} fns]
+    (bind-uniform
      driver
      program
      element
@@ -65,8 +65,8 @@
 
 
 (defmethod bind* :texture-uniform [fns driver program variable input]
-  (let [{:keys [texture-uniform-input texture]} fns]
-    (texture-uniform-input
+  (let [{:keys [bind-texture-uniform texture]} fns]
+    (bind-texture-uniform
      driver
      program
      variable
