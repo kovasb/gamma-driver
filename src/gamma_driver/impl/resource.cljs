@@ -1,4 +1,4 @@
-(ns gamma-driver.common.resource
+(ns gamma-driver.impl.resource
   (:require [goog.webgl :as ggl]))
 
 

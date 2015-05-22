@@ -1,4 +1,4 @@
-(ns gamma-driver.common.variable
+(ns gamma-driver.impl.variable
   (:require [goog.webgl :as ggl]))
 
 
@@ -17,7 +17,7 @@
    })
 
 
-(defn attribute-input [gl program attribute input]
+(defn bind-attribute [gl program attribute input]
   (let [location (attribute-location gl program attribute)
         {:keys [size type normalized? stride offset]}
         ((or (:layout input) default-layout) attribute)]
@@ -40,7 +40,7 @@
   (.getUniformLocation gl (:program program) (:name uniform)))
 
 
-(defn uniform-input [gl program uniform input]
+(defn bind-uniform [gl program uniform input]
   (let [location (uniform-location gl program uniform)
         type (:type uniform)
         data (:data input)]
@@ -65,7 +65,7 @@
 
 
 
-(defn texture-uniform-input [gl program uniform texture]
+(defn bind-texture-uniform [gl program uniform texture]
   (let [location (uniform-location gl program uniform)
         id (:texture-id texture)]
     (.activeTexture gl (+ ggl/TEXTURE0 id))
