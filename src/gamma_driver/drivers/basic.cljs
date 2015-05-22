@@ -62,42 +62,46 @@
           (:count v)))
       (@(:input-state driver) program))))
 
-(defn draw-arrays* [driver program data & [opts]]
-  ;(gd/bind driver program data)
-  (if (not (input-complete? driver program))
-    (throw (js/Error. "Program inputs are incomplete."))
-    (gd/draw-arrays
-      (gdp/gl driver)
-      program
-      ;; should supply below as an arg, with defaults
-      {:draw-mode (:draw-mode opts :triangles)
-       :first 0
-       :count (draw-count driver program)})))
+(defn draw-arrays*
+  ([driver program opts]
+    (draw-arrays* driver program opts nil))
+  ([driver program opts target]
+   (if (not (input-complete? driver program))
+     (throw (js/Error. "Program inputs are incomplete."))
+     (gd/draw-arrays
+       (gdp/gl driver)
+       program
+       ;; should supply below as an arg, with defaults
+       {:draw-mode (:draw-mode opts :triangles)
+        :first 0
+        :count (draw-count driver program)}
+       target))))
 
-(defn draw-elements* [driver program data opts]
-  ;(gd/bind driver program data)
-  (if (not (input-complete? driver program))
-    (throw (js/Error. "Program inputs are incomplete."))
-    (let [index-type (-> data
-                         (get {:tag :element-index})
-                         (:type :unsigned-short))]
-      (gd/draw-elements
-        driver
-        program
-        ;; should supply below as an arg, with defaults
-        {:draw-mode (:draw-mode opts :triangles)
-         :first 0
-         ;; Should we just throw an error if :index-type isn't specified,
-         ;; rather than default to :unsigned-short?  Seems kinder.
-         :index-type index-type
-         :count (:count opts)}))))
+
+(defn draw-elements*
+  ([driver program opts]
+    (draw-elements* driver program opts nil))
+  ([driver program opts target]
+    (if (not (input-complete? driver program))
+     (throw (js/Error. "Program inputs are incomplete."))
+     (gd/draw-elements
+       driver
+       program
+       ;; should supply below as an arg, with defaults
+       {:draw-mode  (:draw-mode opts :triangles)
+        :first      0
+        ;; Should we just throw an error if :index-type isn't specified,
+        ;; rather than default to :unsigned-short?  Seems kinder.
+        :index-type :unsigned-short
+        :count      (:count opts)}
+       target))))
 
 
 
 
 (defrecord BasicDriver [gl resource-state mapping-fn input-state input-fn]
   gdp/IContext
-  (configure [this spec] (c/configure gl spec))
+  (configure [this spec] (gd/configure gl spec))
   (gl [this] gl)
 
   gdp/IResource
@@ -108,33 +112,33 @@
   (frame-buffer [this spec] (produce this gd/frame-buffer spec))
   (render-buffer [this spec] (produce this gd/render-buffer spec))
   (release [this spec] (let [k (mapping-fn spec)]
-                         (r/release gl spec)
+                         (gd/release gl spec)
                          (swap! resource-state dissoc k)))
 
-  proto/WebGLVariableDriver
-  (attribute-input [this program attribute input]
+  gdp/IBindVariable
+  (bind-attribute [this program attribute input]
     (input-fn
       this
       program
-      gd/attribute-input
+      gd/bind-attribute
       attribute
       input))
-  (texture-uniform-input [this program uniform input]
+  (bind-texture-uniform [this program uniform input]
     (input-fn
       this
       program
-      gd/texture-uniform-input
+      gd/bind-texture-uniform
       uniform
       input))
-  (uniform-input [this program uniform input]
+  (bind-uniform [this program uniform input]
     (input-fn
       this
       program
-      gd/uniform-input
+      gd/bind-uniform
       uniform
       input))
 
-  proto/WebGLDrawDriver
+  gdp/IDraw
   (draw-arrays [this program spec] (draw-arrays* gl program spec))
   (draw-arrays [this program spec target] (draw-arrays* gl program spec target))
   (draw-elements [this program spec] (draw-elements* gl program spec))

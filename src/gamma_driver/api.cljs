@@ -122,20 +122,20 @@
     (if (satisfies? gdp/IDraw this)
       (gdp/draw-arrays this program spec)
       (draw/draw-arrays this program spec)))
-  ([this program spec target])
-  (if (satisfies? gdp/IDraw this)
-    (gdp/draw-arrays this program spec target)
-    (draw/draw-arrays this program spec target)))
+  ([this program spec target]
+   (if (satisfies? gdp/IDraw this)
+     (gdp/draw-arrays this program spec target)
+     (draw/draw-arrays this program spec target))))
 
 (defn draw-elements
   ([this program spec]
    (if (satisfies? gdp/IDraw this)
      (gdp/draw-elements this program spec)
      (draw/draw-elements this program spec)))
-  ([this program spec target])
-  (if (satisfies? gdp/IDraw this)
-    (gdp/draw-elements this program spec)
-    (draw/draw-elements this program spec)))
+  ([this program spec target]
+   (if (satisfies? gdp/IDraw this)
+     (gdp/draw-elements this program spec)
+     (draw/draw-elements this program spec))))
 
 
 
