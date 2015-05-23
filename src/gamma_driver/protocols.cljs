@@ -1,11 +1,11 @@
 (ns gamma-driver.protocols)
 
 
-(defprotocol WebGLContextDriver
+(defprotocol IContext
   (configure [this spec])
   (gl [this]))
 
-(defprotocol WebGLResourceDriver
+(defprotocol IResource
   (program [this spec])
   (array-buffer [this spec])
   (element-array-buffer [this spec])
@@ -14,12 +14,14 @@
   (render-buffer [this spec])
   (release [this resource]))
 
-(defprotocol WebGLVariableDriver
-  (attribute-input [this program attribute input])
-  (element-index-input [this program attribute input])
-  (texture-uniform-input [this program uniform input])
-  (uniform-input [this program uniform input]))
+(defprotocol IBindVariable
+  (bind-attribute [this program attribute input])
+  (bind-texture-uniform [this program uniform input])
+  (bind-uniform [this program uniform input]))
 
-(defprotocol WebGLDrawDriver
+(defprotocol IBind
+  (bind [this program spec]))
+
+(defprotocol IDraw
   (draw-arrays [this program spec] [this program spec target])
   (draw-elements [this program spec] [this program spec target]))

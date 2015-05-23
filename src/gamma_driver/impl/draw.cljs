@@ -1,4 +1,4 @@
-(ns gamma-driver.common.draw
+(ns gamma-driver.impl.draw
   (:refer-clojure :exclude [mask])
   (:require [goog.webgl :as ggl]))
 
@@ -26,10 +26,14 @@
       (:first opts)
       (:count opts)))
   ([gl program opts target]
-   (.bindFramebuffer gl ggl/FRAMEBUFFER (:frame-buffer target))
-   (draw-arrays gl program opts)
-   (.bindFramebuffer gl ggl/FRAMEBUFFER nil)
-   target))
+   (if target
+     (do
+       (.bindFramebuffer gl ggl/FRAMEBUFFER (:frame-buffer target))
+       (draw-arrays gl program opts)
+       (.bindFramebuffer gl ggl/FRAMEBUFFER nil)
+       target)
+     (draw-arrays gl program opts))))
+
 
 (def element-types
   {:unsigned-byte ggl/UNSIGNED_BYTE
@@ -44,13 +48,10 @@
        (.useProgram gl (:program program))
        (.drawElements gl draw-mode cnt data-type offset)))
   ([gl program opts target]
-     (.bindFramebuffer gl ggl/FRAMEBUFFER (:frame-buffer target))
-     (draw-elements gl program opts)
-     (.bindFramebuffer gl ggl/FRAMEBUFFER nil)
-     target))
-
-
-
-
-
+   (if target
+     (do
+       (.bindFramebuffer gl ggl/FRAMEBUFFER (:frame-buffer target))
+       (draw-elements gl program opts)
+       (.bindFramebuffer gl ggl/FRAMEBUFFER nil))
+     (draw-elements gl program opts))))
 
