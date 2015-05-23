@@ -101,7 +101,7 @@
 
 (defn bind
   "Binds the program's variables as specified in spec. "
-  [this program spec]
+  [this prog spec]
   (if (satisfies? gdp/IBind this)
     (gdp/bind this program spec)
     (bind/bind
@@ -113,7 +113,7 @@
        :bind-attribute       bind-attribute
        :bind-texture-uniform bind-texture-uniform
        :bind-uniform         bind-uniform}
-      this program spec)))
+      this prog spec)))
 
 
 ;; IDraw
