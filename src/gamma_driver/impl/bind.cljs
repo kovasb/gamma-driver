@@ -36,7 +36,7 @@
            :element element
            :count (if-let [c (:count input)]
                     c
-                    (if (vector? data)
+                    (if (seqable? data)
                       (count data)))))))))
 
 (defmethod bind* :uniform [fns driver program element input]
