@@ -113,7 +113,7 @@
        :bind-attribute       bind-attribute
        :bind-texture-uniform bind-texture-uniform
        :bind-uniform         bind-uniform}
-      this program spec)))
+      (gdp/gl this) program spec)))
 
 
 ;; IDraw
