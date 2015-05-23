@@ -139,10 +139,10 @@
       input))
 
   gdp/IDraw
-  (draw-arrays [this program spec] (draw-arrays* gl program spec))
-  (draw-arrays [this program spec target] (draw-arrays* gl program spec target))
-  (draw-elements [this program spec] (draw-elements* gl program spec))
-  (draw-elements [this program spec target] (draw-elements* gl program spec target)))
+  (draw-arrays [this program spec] (draw-arrays* this program spec))
+  (draw-arrays [this program spec target] (draw-arrays* this program spec target))
+  (draw-elements [this program spec] (draw-elements* this program spec))
+  (draw-elements [this program spec target] (draw-elements* this program spec target)))
 
 
 (defn basic-driver [gl]
