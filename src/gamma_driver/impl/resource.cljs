@@ -22,7 +22,9 @@
 
 (defn program [gl spec]
   (if (:program spec)
-    (.useProgram gl (:program spec))
+    (do
+      (.useProgram gl (:program spec))
+      spec)
     (let [v (shader gl (assoc (:vertex-shader spec) :tag :vertex-shader))
          f (shader gl (assoc (:fragment-shader spec) :tag :fragment-shader))
          p (.createProgram gl)]
