@@ -21,20 +21,24 @@
 
 
 (defn program [gl spec]
-  (let [v (shader gl (assoc (:vertex-shader spec) :tag :vertex-shader))
-        f (shader gl (assoc (:fragment-shader spec) :tag :fragment-shader))
-        p (.createProgram gl)]
-    (.attachShader gl p (:vertex-shader v))
-    (.attachShader gl p (:fragment-shader f))
-    (.linkProgram gl p)
-    (if (.getProgramParameter gl p ggl/LINK_STATUS)
-      (assoc spec :program p
-                  :vertex-shader v
-                  :fragment-shader f)
-      (throw
-        (js/Error.
-          (str "failed to link program: "
-               (.getProgramInfoLog gl p)))))))
+  (if (:program spec)
+    (.useProgram gl (:program spec))
+    (let [v (shader gl (assoc (:vertex-shader spec) :tag :vertex-shader))
+         f (shader gl (assoc (:fragment-shader spec) :tag :fragment-shader))
+         p (.createProgram gl)]
+     (.attachShader gl p (:vertex-shader v))
+     (.attachShader gl p (:fragment-shader f))
+     (.linkProgram gl p)
+     (if (.getProgramParameter gl p ggl/LINK_STATUS)
+       (do
+         (.useProgram gl p)
+         (assoc spec :program p
+                    :vertex-shader v
+                    :fragment-shader f))
+       (throw
+         (js/Error.
+           (str "failed to link program: "
+                (.getProgramInfoLog gl p))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
