@@ -11,7 +11,7 @@ Gamma-Driver is very WIP, APIs are still in flux.
 Add the following to your project.clj's :dependencies
 
 ```clojure
- [kovasb/gamma-driver "0.0-26"]
+ [kovasb/gamma-driver "0.0-49"]
 ```
 
 
