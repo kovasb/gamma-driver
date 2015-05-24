@@ -8,7 +8,7 @@
 
 
 (defn default-layout [attribute]
-  {:normalized false
+  {:normalized? false
    :size ({:float 1 :vec2 2 :vec3 3 :vec4 4}
            (:type attribute))
    :type ggl/FLOAT

@@ -19,7 +19,7 @@
          spec (if-let [x (@resource-state k)] (merge x spec) spec)
           ;;  call constructor fn with the merged map
          val (constructor-fn (proto/gl driver) spec)]
-     (swap! resource-state assoc k val)
+      (swap! resource-state assoc k val)
      val)))
 
 
@@ -91,7 +91,6 @@
     (atom {})
     default-input-fn))
 
-
 ;; want to dispatch to a particular bind* method
 ;; each one will handle a case like attributes versus textures etc
 (defn bind-dispatch-fn [element data]
@@ -118,19 +117,20 @@
     program
     element
     (proto/array-buffer
-      driver
-      (let [input (if (map? input) input {:data input})
-            data (:data input)]
-        (assoc input
-          :data (if (.-buffer data)
-                  data
-                  (js/Float32Array. (clj->js (flatten data))))
-          :usage :static-draw
-          :element element
-          :count (if-let [c (:count input)]
-                   c
-                   (if (vector? data)
-                     (count data))))))))
+     driver
+     (let [input (if (map? input) input {:data input})
+           data (:data input)]
+       (assoc input
+              :data (if (.-buffer data)
+                      data
+                      (js/Float32Array. (clj->js (flatten data))))
+              :layout (:layout input)
+              :usage :static-draw
+              :element element
+              :count (if-let [c (:count input)]
+                       c
+                       (if (vector? data)
+                         (count data))))))))
 
 (defmethod bind* :uniform [driver program element input]
   (proto/uniform-input
@@ -148,10 +148,13 @@
                            {:data input})]
                (assoc input
                  ;; Probably already flattened, but keeping it here for now
-                 :data (js/Uint16Array. (clj->js (flatten (:data input))))
+                 :data (if (.-length (:data input))
+                         (:data input)
+                         (js/Uint16Array. (clj->js (flatten (:data input)))))
                  :usage :static-draw
                  :element element
-                 :count (count (:data input))))]
+                 :count (or (:count input)
+                            (count (:data input)))))]
     (proto/element-array-buffer driver spec)))
 
 
