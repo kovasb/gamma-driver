@@ -37,10 +37,8 @@
 
 
 
-
 ;; want to dispatch to a particular bind* method
 ;; each one will handle a case like attributes versus textures etc
-
 (defn program-inputs-state [driver program]
   (let [s (@(:input-state driver) program)]
     (into {}
