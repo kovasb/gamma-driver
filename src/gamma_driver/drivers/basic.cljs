@@ -45,8 +45,8 @@
           (map #(vector % (s %)) (:inputs program)))))
 
 (defn input-complete? [driver program]
-  (let [state (@(:input-state driver) program)
-        inputs (:inputs program)]
+  (let [state   (@(:input-state driver) program)
+        inputs  (:inputs program)]
     (not-any? nil? (map state inputs))))
 ;; would like return value to indicate which inputs are not filled in?
 
@@ -83,7 +83,7 @@
     (if (not (input-complete? driver program))
      (throw (js/Error. "Program inputs are incomplete."))
      (gd/draw-elements
-       driver
+      (gdp/gl driver)
        program
        ;; should supply below as an arg, with defaults
        {:draw-mode  (:draw-mode opts :triangles)

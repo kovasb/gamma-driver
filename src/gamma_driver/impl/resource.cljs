@@ -107,12 +107,12 @@
 
 
 (def texture-filter-constants
-  {:linear ggl/LINEAR
-   :nearest ggl/NEAREST
+  {:linear                 ggl/LINEAR
+   :nearest                ggl/NEAREST
    :nearest-mipmap-nearest ggl/NEAREST_MIPMAP_NEAREST
-   :linear-mipmap-nearest ggl/LINEAR_MIPMAP_NEAREST
-   :nearest-mipmap-linear ggl/NEAREST_MIPMAP_LINEAR
-   :linear-mipmap-linear ggl/LINEAR_MIPMAP_LINEAR})
+   :linear-mipmap-nearest  ggl/LINEAR_MIPMAP_NEAREST
+   :nearest-mipmap-linear  ggl/NEAREST_MIPMAP_LINEAR
+   :linear-mipmap-linear   ggl/LINEAR_MIPMAP_LINEAR})
 
 (defn- texture-filter [gl spec]
   (let [{:keys [min mag]} spec]
@@ -192,7 +192,7 @@
 
 
 (defn texture [gl spec]
-  ;(println spec)
+                                        ;(println spec)
   (if (:texture spec)
     spec
     (let [tex (.createTexture gl)
