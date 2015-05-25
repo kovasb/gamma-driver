@@ -41,12 +41,15 @@
 
 (defn draw-elements
   ([gl program opts]
-     (let [draw-mode (draw-modes (:draw-mode opts))
-           cnt       (:count opts)
-           data-type (element-types (:index-type opts))
-           offset    (* (get {:unsigned-byte 1 :unsigned-short 2} (:index-type opts)) (:first opts))]
-       (.useProgram gl (:program program))
-       (.drawElements gl draw-mode cnt data-type offset)))
+   (let [draw-mode (let [dm (:draw-mode opts)]
+                     (if (integer? dm)
+                       dm
+                       (draw-modes (:draw-mode opts))))
+         cnt       (:count opts)
+         data-type (element-types (:index-type opts) ggl/UNSIGNED_SHORT)
+         offset    (* (get {:unsigned-byte 1 :unsigned-short 2} (:index-type opts)) (:first opts))]
+     (.useProgram gl (:program program))
+     (.drawElements gl draw-mode cnt data-type offset)))
   ([gl program opts target]
    (if target
      (do
