@@ -8,17 +8,31 @@
 ;; found in common.resource.cljs with produce
 ;; this lets us reuse prexisting array buffers
 
-(defn produce [driver constructor-fn spec]
-  (let [{:keys [gl resource-state mapping-fn]} driver]
-    (let [
-          ;; given input, apply mapping-fn to get its key in the resource-state map
-          k (mapping-fn spec)
-          ;; if already there, merge spec in
-         spec (if-let [x (@resource-state k)] (merge x spec) spec)
-          ;;  call constructor fn with the merged map
-         val (constructor-fn (gd/gl driver) spec)]
-     (swap! resource-state assoc k val)
-     val)))
+(comment
+  (defn produce [driver constructor-fn spec]
+   (let [{:keys [gl resource-state mapping-fn]} driver]
+     (let [
+           ;; given input, apply mapping-fn to get its key in the resource-state map
+           k (mapping-fn spec)
+           ;; if already there, merge spec in
+           spec (if-let [x (@resource-state k)] (merge x spec) spec)
+           ;;  call constructor fn with the merged map
+           val (constructor-fn (gd/gl driver) spec)]
+       (swap! resource-state assoc k val)
+       val))))
+
+(defn produce [driver constructor-fn resource-spec]
+  (let [{:keys [resource-state mapping-fn produce-fn]} driver
+        k (mapping-fn resource-spec)
+        existing-resource (@resource-state k)
+        new (produce-fn driver constructor-fn existing-resource resource-spec)]
+    (swap! resource-state assoc k new)
+    new))
+
+(defn default-produce-fn [driver constructor-fn old-spec new-spec]
+  (constructor-fn (gd/gl driver) (merge old-spec new-spec)))
+
+
 
 
 ;; this part wraps resource binding, eg connecting buffers to attributes
@@ -34,7 +48,7 @@
     (swap! input-state assoc-in [program variable] spec)
     i))
 
-
+;; binding non-variables, like element-index?
 
 
 
@@ -68,14 +82,13 @@
   ([driver program opts target]
    (if (not (input-complete? driver program))
      (throw (js/Error. "Program inputs are incomplete."))
-     (gd/draw-arrays
-       (gdp/gl driver)
-       program
-       ;; should supply below as an arg, with defaults
-       {:draw-mode (:draw-mode opts :triangles)
-        :first 0
-        :count (draw-count driver program)}
-       target))))
+     (if [c (if-let [c (:count opts)] c (draw-count driver program))]
+       (gd/draw-arrays
+        (gdp/gl driver)
+        program
+        ;; should supply below as an arg, with defaults
+        (assoc opts :count c)
+        target)))))
 
 
 (defn draw-elements*

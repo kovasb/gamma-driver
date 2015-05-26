@@ -22,8 +22,8 @@
    (.useProgram gl (:program program))
     (.drawArrays
       gl
-      (draw-modes (:draw-mode opts))
-      (:first opts)
+      (draw-modes (:draw-mode opts :triangles))
+      (:first opts 0)
       (:count opts)))
   ([gl program opts target]
    (if target
@@ -41,7 +41,7 @@
 
 (defn draw-elements
   ([gl program opts]
-     (let [draw-mode (draw-modes (:draw-mode opts))
+     (let [draw-mode (draw-modes (:draw-mode opts :triangles))
            cnt       (:count opts)
            data-type (element-types (:index-type opts))
            offset    (* (get {:unsigned-byte 1 :unsigned-short 2} (:index-type opts)) (:first opts))]
