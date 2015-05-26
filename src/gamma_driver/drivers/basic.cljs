@@ -112,7 +112,7 @@
 
 
 
-(defrecord BasicDriver [gl resource-state mapping-fn input-state input-fn]
+(defrecord BasicDriver [gl resource-state mapping-fn input-state input-fn produce-fn]
   gdp/IContext
   (configure [this spec] (gd/configure gl spec))
   (gl [this] gl)
@@ -159,17 +159,13 @@
 
 
 (defn basic-driver [gl]
-  (BasicDriver.
-    gl
-    (atom {})
-    (fn [x] (or (:id x) (:element x) x))
-    (atom {})
-    default-input-fn))
-
-
-
-
-
+  (map->BasicDriver
+    {:gl gl
+     :resource-state (atom {})
+     :mapping-fn (fn [x] (or (:id x) (:element x) x))
+     :input-state (atom {})
+     :input-fn default-input-fn
+     :produce-fn default-produce-fn}))
 
 
 (comment
