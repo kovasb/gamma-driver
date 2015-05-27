@@ -3,8 +3,7 @@
 
 (cljsc/build (cljs.build.api/inputs
                "src"
-               "test"
-               )
+               "test")
              {:output-dir "resources/public/js/out"
               :output-to "resources/public/js/main.js"
               :main 'gamma-driver.test

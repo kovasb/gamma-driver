@@ -23,7 +23,7 @@
     (.drawArrays
       gl
       (draw-modes (:draw-mode opts :triangles))
-      (:first opts 0)
+      (:first opts 0    )
       (:count opts)))
   ([gl program opts target]
    (if target
