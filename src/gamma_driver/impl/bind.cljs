@@ -46,6 +46,7 @@
      element
      (let [input (if (map? input) input {:data input})]
        (assoc input
+         :tag :uniform
          :element element
          :data (clj->js (flatten [(:data input)])))))))
 
