@@ -67,8 +67,9 @@
 
 (defn bind-texture-uniform [gl program uniform texture]
   (let [location (uniform-location gl program uniform)
-        id (:texture-id texture)]
+        id       (:texture-id texture)
+        target   (:target texture)]
     (.activeTexture gl (+ ggl/TEXTURE0 id))
-    (.bindTexture gl ggl/TEXTURE_2D (:texture texture))
+    (.bindTexture gl target (:texture texture))
     (.uniform1i gl location id))
   texture)

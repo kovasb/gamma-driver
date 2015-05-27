@@ -6,7 +6,8 @@
       (= :attribute (:storage element)) :attribute
       (and
         (= :uniform (:storage element))
-        (= :sampler2D (:type element))) :texture-uniform
+        (or (= :sampler2D (:type element))
+            (= :samplerCube (:type element)))) :texture-uniform
       (= :uniform (:storage element)) :uniform)
     (cond
       (= :element-index (:tag element)) :element-index
