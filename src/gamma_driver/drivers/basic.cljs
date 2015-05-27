@@ -82,7 +82,7 @@
   ([driver program opts target]
    (if (not (input-complete? driver program))
      (throw (js/Error. "Program inputs are incomplete."))
-     (if [c (if-let [c (:count opts)] c (draw-count driver program))]
+     (let [c (get opts :count (draw-count driver program))]
        (gd/draw-arrays
         (gdp/gl driver)
         program
