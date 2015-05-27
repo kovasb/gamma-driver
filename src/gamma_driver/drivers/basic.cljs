@@ -21,7 +21,7 @@
 
 (defn input [driver program binder-fn variable new-spec]
   (let [{:keys [input-fn input-state]} driver
-        old-spec ((@input-state program) variable {})
+        old-spec (get-in @input-state [program variable] {})
         new (input-fn driver program binder-fn variable old-spec new-spec)]
     (swap! input-state assoc-in [program variable] new)))
 
