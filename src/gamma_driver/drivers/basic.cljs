@@ -111,34 +111,34 @@
                          (swap! resource-state dissoc k)))
 
   gdp/IBindVariable
-  (bind-attribute [this program attribute input]
+  (bind-attribute [this program attribute spec]
     (input
       this
       program
       gd/bind-attribute
       attribute
-      input))
-  (bind-element-array [this program element-array input]
+      spec))
+  (bind-element-array [this program element-array spec]
     (input
       this
       program
       gd/bind-element-array
       element-array
-      input))
-  (bind-texture-uniform [this program uniform input]
+      spec))
+  (bind-texture-uniform [this program uniform spec]
     (input
       this
       program
       gd/bind-texture-uniform
       uniform
-      input))
-  (bind-uniform [this program uniform input]
+      spec))
+  (bind-uniform [this program uniform spec]
     (input
       this
       program
       gd/bind-uniform
       uniform
-      input))
+      spec))
 
   gdp/IDraw
   (draw-arrays [this program spec] (draw-arrays* this program spec))
