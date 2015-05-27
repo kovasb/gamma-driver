@@ -30,9 +30,7 @@
       (let [input (if (map? input) input {:data input})
             data  (:data input)]
         (assoc input
-               :data (if (.-length data)
-                       data
-                       (js/Float32Array. (clj->js (flatten data))))
+               :data data
                :usage :static-draw
                :element element
                :count (if-let [c (:count input)]
@@ -59,15 +57,13 @@
      element
      (element-array-buffer
       driver
-      (let [spec (let [data  (:data input)
-                       input (if (map? input)
+      (let [spec (let [input (if (map? input)
                                input
-                               {:data input})]
+                               {:data input})
+                       data  (:data input)]
                    (assoc input
                           ;; Probably already flattened, but keeping it here for now
-                          :data  (if (.-buffer (:data input))
-                                   (:data input)
-                                   (js/Uint16Array. (clj->js (flatten (:data input)))))
+                          :data data
                           :usage :static-draw
                           :element element
                           :count (if-let [c (:count input)]

@@ -84,12 +84,14 @@
      (throw (js/Error. "Program inputs are incomplete."))
      (let [c (if-let [c (:count opts)]
                c
-               (draw-count driver program))]
+               (draw-count driver program))
+           new-opts (assoc opts :count c)]
+       (println ["draw-arrays* new-opts" new-opts])
        (gd/draw-arrays
         (gdp/gl driver)
         program
         ;; should supply below as an arg, with defaults
-        (assoc opts :count c)
+        new-opts
         target)))))
 
 
