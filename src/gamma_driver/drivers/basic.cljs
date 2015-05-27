@@ -30,7 +30,9 @@
     new))
 
 (defn default-produce-fn [driver constructor-fn old-spec new-spec]
-  (constructor-fn (gd/gl driver) (merge old-spec new-spec)))
+  (if (and (:immutable? old-spec) (:immutable? new-spec))
+    old-spec
+    (constructor-fn (gd/gl driver) (merge old-spec new-spec))))
 
 
 
