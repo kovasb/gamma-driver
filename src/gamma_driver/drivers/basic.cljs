@@ -112,28 +112,28 @@
 
   gdp/IBindVariable
   (bind-attribute [this program attribute input]
-    (input-fn
+    (input
       this
       program
       gd/bind-attribute
       attribute
       input))
   (bind-element-array [this program element-array input]
-    (input-fn
+    (input
       this
       program
       gd/bind-element-array
       element-array
       input))
   (bind-texture-uniform [this program uniform input]
-    (input-fn
+    (input
       this
       program
       gd/bind-texture-uniform
       uniform
       input))
   (bind-uniform [this program uniform input]
-    (input-fn
+    (input
       this
       program
       gd/bind-uniform
