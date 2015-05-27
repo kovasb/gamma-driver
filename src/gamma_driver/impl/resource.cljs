@@ -61,7 +61,7 @@
         data
         (or ({:static-draw ggl/STATIC_DRAW :dynamic-draw ggl/DYNAMIC_DRAW} (:usage spec))
             ggl/STATIC_DRAW)))
-    (assoc spec :array-buffer buffer)))
+    (assoc spec :array-buffer buffer :tag :array-buffer)))
 
 
 
@@ -79,7 +79,7 @@
         data
         (or ({:static-draw ggl/STATIC_DRAW :dynamic-draw ggl/DYNAMIC_DRAW} (:usage spec))
             ggl/STATIC_DRAW)))
-    (assoc spec :element-array-buffer buffer)))
+    (assoc spec :element-array-buffer buffer :tag :element-array-buffer)))
 
 
 ;; parts of creating texture

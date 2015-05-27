@@ -4,22 +4,6 @@
     [gamma-driver.protocols :as gdp]))
 
 
-;; WebGLResourceDriver implementations wrap the low-level constructors fns
-;; found in common.resource.cljs with produce
-;; this lets us reuse prexisting array buffers
-
-(comment
-  (defn produce [driver constructor-fn spec]
-   (let [{:keys [gl resource-state mapping-fn]} driver]
-     (let [
-           ;; given input, apply mapping-fn to get its key in the resource-state map
-           k (mapping-fn spec)
-           ;; if already there, merge spec in
-           spec (if-let [x (@resource-state k)] (merge x spec) spec)
-           ;;  call constructor fn with the merged map
-           val (constructor-fn (gd/gl driver) spec)]
-       (swap! resource-state assoc k val)
-       val))))
 
 (defn produce [driver constructor-fn resource-spec]
   (let [{:keys [resource-state mapping-fn produce-fn]} driver
@@ -35,26 +19,21 @@
     (constructor-fn (gd/gl driver) (merge old-spec new-spec))))
 
 
+(defn input [driver program binder-fn variable new-spec]
+  (let [{:keys [input-fn input-state]} driver
+        old-spec ((@input-state program) variable {})
+        new (input-fn driver program binder-fn variable old-spec new-spec)]
+    (swap! input-state assoc-in [program variable] new)))
 
 
-;; this part wraps resource binding, eg connecting buffers to attributes
-;; input-binder is the fn from variable.cljs
-;; this keeps track of what resource was bound to what [program variable] pair
-;; -> allows us to see if we've inputted data for all variables, instead of getting
-;;    just a black screen
-;; -> allows us to compute how many vertices to draw, rather than calculating by hand
-;; keeps track of this on the :input-state atom on driver
-(defn default-input-fn [driver program input-binder variable spec]
-  (let [{:keys [input-state gl]} driver
-        i (input-binder gl program variable spec)]
-    (swap! input-state assoc-in [program variable] spec)
-    i))
-
-;; binding non-variables, like element-index?
+(defn default-input-fn [driver program binder-fn variable old new]
+  (let [t (:tag new)]
+    (if (= (old t) (new t))
+      new
+      (binder-fn (gd/gl driver) program variable new))))
 
 
-;; want to dispatch to a particular bind* method
-;; each one will handle a case like attributes versus textures etc
+
 (defn program-inputs-state [driver program]
   (let [s (@(:input-state driver) program)]
     (into {}
