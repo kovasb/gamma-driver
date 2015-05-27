@@ -9,9 +9,9 @@
   (let [{:keys [resource-state mapping-fn produce-fn]} driver
         k (mapping-fn resource-spec)
         existing-resource (@resource-state k)
-        new (produce-fn driver constructor-fn existing-resource resource-spec)]
-    (swap! resource-state assoc k new)
-    new))
+        new-spec (produce-fn driver constructor-fn existing-resource resource-spec)]
+    (swap! resource-state assoc k new-spec)
+    new-spec))
 
 (defn default-produce-fn [driver constructor-fn old-spec new-spec]
   (if (and (:immutable? old-spec) (:immutable? new-spec))
@@ -22,15 +22,15 @@
 (defn input [driver program binder-fn variable new-spec]
   (let [{:keys [input-fn input-state]} driver
         old-spec (get-in @input-state [program variable] {})
-        new (input-fn driver program binder-fn variable old-spec new-spec)]
-    (swap! input-state assoc-in [program variable] new)))
+        new-spec (input-fn driver program binder-fn variable old-spec new-spec)]
+    (swap! input-state assoc-in [program variable] new-spec)))
 
 
-(defn default-input-fn [driver program binder-fn variable old new]
-  (let [t (:tag new)]
-    (if (and old new (= (old t) (new t)))
-      new
-      (binder-fn (gd/gl driver) program variable new))))
+(defn default-input-fn [driver program binder-fn variable old-spec new-spec]
+  (let [t (:tag new-spec)]
+    (if (and old-spec new-spec (= (old-spec t) (new-spec t)))
+      new-spec
+      (binder-fn (gd/gl driver) program variable new-spec))))
 
 
 
