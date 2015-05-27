@@ -25,19 +25,19 @@
      program
      element
      (array-buffer
-       driver
-       (let [input (if (map? input) input {:data input})
-             data (:data input)]
-         (assoc input
-           :data (if (.-buffer data)
-                   data
-                   (js/Float32Array. (clj->js (flatten data))))
-           :usage :static-draw
-           :element element
-           :count (if-let [c (:count input)]
-                    c
-                    (if (seqable? data)
-                      (count data)))))))))
+      driver
+      (let [input (if (map? input) input {:data input})
+            data  (:data input)]
+        (assoc input
+               :data (if (.-length data)
+                       data
+                       (js/Float32Array. (clj->js (flatten data))))
+               :usage :static-draw
+               :element element
+               :count (if-let [c (:count input)]
+                        c
+                        (if (seqable? data)
+                          (count data)))))))))
 
 (defmethod bind* :uniform [fns driver program element input]
   (let [{:keys [bind-uniform]} fns]
@@ -57,10 +57,14 @@
                             {:data input})]
                 (assoc input
                   ;; Probably already flattened, but keeping it here for now
-                  :data (js/Uint16Array. (clj->js (flatten (:data input))))
+                  :data  (if (.-buffer (:data input))
+                           (:data input)
+                           (js/Uint16Array. (clj->js (flatten (:data input)))))
                   :usage :static-draw
                   :element element
-                  :count (count (:data input))))]
+                  :count (if-let [c (:count input)]
+                           c
+                           (count (:data input)))))]
      (element-array-buffer driver spec))))
 
 
