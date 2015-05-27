@@ -86,7 +86,6 @@
                c
                (draw-count driver program))
            new-opts (assoc opts :count c)]
-       (println ["draw-arrays* new-opts" new-opts])
        (gd/draw-arrays
         (gdp/gl driver)
         program

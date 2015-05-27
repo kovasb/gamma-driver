@@ -19,7 +19,6 @@
 
 (defn draw-arrays
   ([gl program opts]
-   (.log js/console (clj->js opts))
    (.useProgram gl (:program program))
     (.drawArrays
       gl
@@ -27,7 +26,6 @@
       (:first opts 0)
       (:count opts)))
   ([gl program opts target]
-   (.trace js/console)
    (if target
      (do
        (.bindFramebuffer gl ggl/FRAMEBUFFER (:frame-buffer target))
