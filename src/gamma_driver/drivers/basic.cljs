@@ -28,7 +28,7 @@
 
 (defn default-input-fn [driver program binder-fn variable old new]
   (let [t (:tag new)]
-    (if (and old new (= (old t) (new t))))
+    (if (and old new (= (old t) (new t)))
       new
       (binder-fn (gd/gl driver) program variable new))))
 
