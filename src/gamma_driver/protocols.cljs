@@ -16,6 +16,7 @@
 
 (defprotocol IBindVariable
   (bind-attribute [this program attribute input])
+  (bind-element-array [this program element-array input])
   (bind-texture-uniform [this program uniform input])
   (bind-uniform [this program uniform input]))
 

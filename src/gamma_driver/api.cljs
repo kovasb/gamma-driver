@@ -83,6 +83,13 @@
     (gdp/bind-attribute this program attribute array-buffer-model)
     (variable/bind-attribute this program attribute array-buffer-model)))
 
+(defn bind-element-array
+  "Binds element variable to data in element-array-buffer-model."
+  [this program element-array element-array-buffer-model]
+  (if (satisfies? gdp/IBindVariable this)
+    (gdp/bind-element-array this program element-array element-array-buffer-model)
+    (variable/bind-element-index this program element-array element-array-buffer-model)))
+
 (defn bind-texture-uniform
   "Binds texture uniform variable (sampler2D) to data in texture-model."
   [this program uniform texture-model]
@@ -106,13 +113,14 @@
     (gdp/bind this program spec)
     (bind/bind
       ;; need to pass these in to avoid cyclic dependency
-      {:program program
-       :array-buffer array-buffer
-       :element-array-buffer element-array-buffer
-       :texture texture
-       :bind-attribute       bind-attribute
-       :bind-texture-uniform bind-texture-uniform
-       :bind-uniform         bind-uniform}
+     {:program              program
+      :array-buffer         array-buffer
+      :element-array-buffer element-array-buffer
+      :texture              texture
+      :bind-element-array   bind-element-array
+      :bind-attribute       bind-attribute
+      :bind-texture-uniform bind-texture-uniform
+      :bind-uniform         bind-uniform}
       this prog spec)))
 
 

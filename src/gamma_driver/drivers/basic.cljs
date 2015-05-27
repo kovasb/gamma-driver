@@ -136,6 +136,13 @@
       gd/bind-attribute
       attribute
       input))
+  (bind-element-array [this program element-array input]
+    (input-fn
+      this
+      program
+      gd/bind-element-array
+      element-array
+      input))
   (bind-texture-uniform [this program uniform input]
     (input-fn
       this

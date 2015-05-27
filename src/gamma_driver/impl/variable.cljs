@@ -32,7 +32,7 @@
     (.enableVertexAttribArray gl location)
     input))
 
-(defn element-index-input [gl program indices input]
+(defn bind-element-index [gl program indices input]
   (.bindBuffer gl ggl/ELEMENT_ARRAY_BUFFER (:element-array-buffer input))
   input)
 
