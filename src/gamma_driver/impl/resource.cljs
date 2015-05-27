@@ -91,17 +91,17 @@
 
 
 (defn- texture-wrap [gl spec]
-  (let [{:keys [s t]} spec]
+  (let [{:keys [target s t]} spec]
     (if s
       (.texParameteri
         gl
-        ggl/TEXTURE_2D
+        target
         ggl/TEXTURE_WRAP_S
         (texture-wrap-constants s)))
     (if t
       (.texParameteri
         gl
-        ggl/TEXTURE_2D
+        target
         ggl/TEXTURE_WRAP_T
         (texture-wrap-constants t)))))
 
@@ -115,17 +115,17 @@
    :linear-mipmap-linear   ggl/LINEAR_MIPMAP_LINEAR})
 
 (defn- texture-filter [gl spec]
-  (let [{:keys [min mag]} spec]
+  (let [{:keys [target min mag]} spec]
     (if min
       (.texParameteri
         gl
-        ggl/TEXTURE_2D
+        target
         ggl/TEXTURE_MIN_FILTER
         (texture-filter-constants min)))
     (if mag
       (.texParameteri
         gl
-        ggl/TEXTURE_2D
+        target
         ggl/TEXTURE_MAG_FILTER
         (texture-filter-constants mag)))))
 
@@ -196,41 +196,58 @@
   (if (:texture spec)
     spec
     (let [tex (.createTexture gl)
-         {:keys [format-type width height unpack filter wrap]} spec
+          cube-map? (:faces spec)
+          target (if cube-map?
+                   ggl/TEXTURE_CUBE_MAP
+                   ggl/TEXTURE_2D)
+          {:keys [format-type width height unpack filter wrap faces]} spec
+          spec (assoc spec :target target)
          [format type] format-type
          format (texture-formats (or format :rgba))
          type (texture-data-types (or type :unsigned-byte))]
 
-     (texture-unpack gl unpack)
+      (texture-unpack gl unpack)
      (.activeTexture gl (+ ggl/TEXTURE0 (:texture-id spec)))
-     (.bindTexture gl ggl/TEXTURE_2D tex)
+     (.bindTexture gl target tex)
 
-     (texture-wrap gl wrap)
-     (texture-filter gl filter)
-
-     (case (texture-data-type (:data spec))
-       :image
-       (.texImage2D
-         gl
-         ggl/TEXTURE_2D
-         0
-         format
-         format
-         type
-         (:data spec))
-       :pixels
-       (.texImage2D
-         gl
-         ggl/TEXTURE_2D
-         0
-         format
-         width
-         height
-         0
-         format
-         type
-         (:data spec)))
-     (.bindTexture gl ggl/TEXTURE_2D nil)
+     (texture-wrap gl (assoc wrap :target target))
+     (texture-filter gl (assoc filter :target target))
+     (if cube-map?
+        (let [texture-enums [ggl/TEXTURE_CUBE_MAP_POSITIVE_X ggl/TEXTURE_CUBE_MAP_NEGATIVE_X
+                             ggl/TEXTURE_CUBE_MAP_POSITIVE_Y ggl/TEXTURE_CUBE_MAP_NEGATIVE_Y
+                             ggl/TEXTURE_CUBE_MAP_POSITIVE_Z ggl/TEXTURE_CUBE_MAP_NEGATIVE_Z]
+               ;; Make sure we get the faces out in the right order
+              texture-faces (reduce into [] [(:x faces) (:y faces) (:z faces)])]
+          (dorun (map (fn [face-enum data]
+                        (.texImage2D gl face-enum 0 format format type data)) texture-enums texture-faces))
+          ;; TODO: Add a check to see if we're supposed to generate mipmaps
+          (try
+            (.generateMipmap gl target)
+            (catch js/Error e
+              (js/console.log "Error generating mipmap for texture cube: " e))))
+        (case (texture-data-type (:data spec))
+          :image
+          (.texImage2D
+           gl
+           target
+           0
+           format
+           format
+           type
+           (:data spec))
+          :pixels
+          (.texImage2D
+           gl
+           target
+           0
+           format
+           width
+           height
+           0
+           format
+           type
+           (:data spec))))
+     (.bindTexture gl target nil)
      (assoc spec :tag :texture :texture tex))))
 
 

@@ -6,7 +6,8 @@
       (= :attribute (:storage element)) :attribute
       (and
         (= :uniform (:storage element))
-        (= :sampler2D (:type element))) :texture-uniform
+        (or (= :sampler2D (:type element))
+            (= :samplerCube (:type element)))) :texture-uniform
       (= :uniform (:storage element)) :uniform)
     (cond
       (= :element-index (:tag element)) :element-index
@@ -51,21 +52,28 @@
          :data (clj->js (flatten [(:data input)])))))))
 
 (defmethod bind* :element-index [fns driver program element input]
-  (let [{:keys [element-array-buffer]} fns]
-    (let [spec (let [input (if (map? input)
-                            input
-                            {:data input})]
-                (assoc input
-                  ;; Probably already flattened, but keeping it here for now
-                  :data  (if (.-buffer (:data input))
-                           (:data input)
-                           (js/Uint16Array. (clj->js (flatten (:data input)))))
-                  :usage :static-draw
-                  :element element
-                  :count (if-let [c (:count input)]
-                           c
-                           (count (:data input)))))]
-     (element-array-buffer driver spec))))
+  (let [{:keys [bind-element-array element-array-buffer]} fns]
+    (bind-element-array
+     driver
+     program
+     element
+     (element-array-buffer
+      driver
+      (let [spec (let [data  (:data input)
+                       input (if (map? input)
+                               input
+                               {:data input})]
+                   (assoc input
+                          ;; Probably already flattened, but keeping it here for now
+                          :data  (if (.-buffer (:data input))
+                                   (:data input)
+                                   (js/Uint16Array. (clj->js (flatten (:data input)))))
+                          :usage :static-draw
+                          :element element
+                          :count (if-let [c (:count input)]
+                                   c
+                                   (count (:data input)))))]
+        spec)))))
 
 
 (defmethod bind* :texture-uniform [fns driver program variable input]
