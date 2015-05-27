@@ -53,14 +53,14 @@
     (.bindBuffer gl ggl/ARRAY_BUFFER buffer)
     (let [data (:data spec)
           data (if (.-length data)
-            data
-            (js/Float32Array. (clj->js (flatten data))))]
+                 data
+                 (js/Float32Array. (clj->js (flatten data))))]
       (.bufferData
-       gl
-       ggl/ARRAY_BUFFER
-       data
-       (or ({:static-draw ggl/STATIC_DRAW :dynamic-draw ggl/DYNAMIC_DRAW} (:usage spec))
-           ggl/STATIC_DRAW)))
+        gl
+        ggl/ARRAY_BUFFER
+        data
+        (or ({:static-draw ggl/STATIC_DRAW :dynamic-draw ggl/DYNAMIC_DRAW} (:usage spec))
+            ggl/STATIC_DRAW)))
     (assoc spec :array-buffer buffer)))
 
 
@@ -70,15 +70,15 @@
   (let [buffer (or (:element-array-buffer spec) (.createBuffer gl))]
     (.bindBuffer gl ggl/ELEMENT_ARRAY_BUFFER buffer)
     (let [data (:data spec)
-          data (if (.-buffer (:data input))
-            (:data input)
-            (js/Uint16Array. (clj->js (flatten data))))]
+          data (if (.-buffer data)
+                 data
+                 (js/Uint16Array. (clj->js (flatten data))))]
       (.bufferData
-       gl
-       ggl/ELEMENT_ARRAY_BUFFER
-       data
-       (or ({:static-draw ggl/STATIC_DRAW :dynamic-draw ggl/DYNAMIC_DRAW} (:usage spec))
-           ggl/STATIC_DRAW)))
+        gl
+        ggl/ELEMENT_ARRAY_BUFFER
+        data
+        (or ({:static-draw ggl/STATIC_DRAW :dynamic-draw ggl/DYNAMIC_DRAW} (:usage spec))
+            ggl/STATIC_DRAW)))
     (assoc spec :element-array-buffer buffer)))
 
 
