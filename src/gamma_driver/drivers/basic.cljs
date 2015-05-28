@@ -28,9 +28,12 @@
 
 (defn default-input-fn [driver program binder-fn variable old-spec new-spec]
   (let [t (:tag new-spec)]
-    (if (and old-spec new-spec (not= :uniform new-spec) (= (old-spec t) (new-spec t)))
-      new-spec
-      (binder-fn (gd/gl driver) program variable new-spec))))
+    (if (and old-spec new-spec (not= :uniform t) (= (old-spec t) (new-spec t)))
+      old-spec
+      (if
+        (and (= :uniform t) (:immutable? old-spec))
+        old-spec
+        (binder-fn (gd/gl driver) program variable new-spec)))))
 
 
 
