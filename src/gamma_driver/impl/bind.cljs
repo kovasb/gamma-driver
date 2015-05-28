@@ -44,11 +44,14 @@
      driver
      program
      element
-     (let [input (if (map? input) input {:data input})]
+     (let [input (if (map? input) input {:data input})
+           data (:data input)]
        (assoc input
          :tag :uniform
          :element element
-         :data (clj->js (flatten [(:data input)])))))))
+         :data (if (array? data)
+                 data
+                 (clj->js (flatten [data]))))))))
 
 (defmethod bind* :element-index [fns driver program element input]
   (let [{:keys [bind-element-array element-array-buffer]} fns]
