@@ -143,8 +143,8 @@
      (draw/draw-elements this program spec)))
   ([this program spec target]
    (if (satisfies? gdp/IDraw this)
-     (gdp/draw-elements this program spec)
-     (draw/draw-elements this program spec))))
+     (gdp/draw-elements this program spec target)
+     (draw/draw-elements this program spec target))))
 
 
 
