@@ -45,7 +45,7 @@
 (defn input-incomplete? [driver program]
   (let [state  (@(:input-state driver) program)
         inputs (:inputs program)]
-    (if (some nil? (map state inputs))
+    (if (some nil? (map #(get state %) inputs))
       ;; We're going to bail at this point anyway, so let's spend some
       ;; extra time extracting what inputs were incomplete
       (remove (fn [input] (get state input)) inputs)
