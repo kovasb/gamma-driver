@@ -139,29 +139,30 @@
 
 (defn texture-data-type [d]
   ;; ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement
-  (if (or (instance? js/ImageData d)
-          (instance? js/HTMLImageElement d)
-          (instance? js/HTMLCanvasElement d)
-          (instance? js/HTMLVideoElement d))
-    :image
-    (if (or (instance? js/Float32Array d) (nil? d))
-      :pixels
-      (throw (js/Error. (str "texture data type not supported: " (pr-str d)) ))))
+  (cond
+    (or (instance? js/ImageData d)
+        (instance? js/HTMLImageElement d)
+        (instance? js/HTMLCanvasElement d)
+        (instance? js/HTMLVideoElement d))      :image
+    (or (instance? js/Float32Array d) (nil? d)) :pixels
+    :else                                       (throw (js/Error. (str "texture data type not supported: " (pr-str d)) )))
   ;; arraybufferview
   )
 
 
 (def texture-formats
-  {:alpha ggl/ALPHA
-   :luminance ggl/LUMINANCE
+  {:alpha           ggl/ALPHA
+   :depth           ggl/DEPTH_COMPONENT
+   :luminance       ggl/LUMINANCE
    :luminance-alpha ggl/LUMINANCE_ALPHA
-   :rgb ggl/RGB
-   :rgba ggl/RGBA})
+   :rgb             ggl/RGB
+   :rgba            ggl/RGBA})
 
 (def texture-data-types
-  {:unsigned-byte ggl/UNSIGNED_BYTE
-   ; :float ggl/FLOAT
-   :unsigned-short-5-6-5 ggl/UNSIGNED_SHORT_5_6_5
+  {:unsigned-byte          ggl/UNSIGNED_BYTE
+                                        ; :float ggl/FLOAT
+   :unsigned-short         ggl/UNSIGNED_SHORT
+   :unsigned-short-5-6-5   ggl/UNSIGNED_SHORT_5_6_5
    :unsigned-short-4-4-4-4 ggl/UNSIGNED_SHORT_4_4_4_4
    :unsigned-short-5-5-5-1 ggl/UNSIGNED_SHORT_5_5_5_1})
 
