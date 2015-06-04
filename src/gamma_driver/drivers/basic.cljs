@@ -42,10 +42,14 @@
     (into {}
           (map #(vector % (s %)) (:inputs program)))))
 
-(defn input-complete? [driver program]
-  (let [state   (@(:input-state driver) program)
-        inputs  (:inputs program)]
-    (not-any? nil? (map state inputs))))
+(defn input-incomplete? [driver program]
+  (let [state  (@(:input-state driver) program)
+        inputs (:inputs program)]
+    (if (some nil? (map state inputs))
+      ;; We're going to bail at this point anyway, so let's spend some
+      ;; extra time extracting what inputs were incomplete
+      (remove (fn [input] (get state input)) inputs)
+      false)))
 ;; would like return value to indicate which inputs are not filled in?
 
 
@@ -62,8 +66,12 @@
   ([driver program opts]
     (draw-arrays* driver program opts nil))
   ([driver program opts target]
-   (if (not (input-complete? driver program))
-     (throw (js/Error. "Program inputs are incomplete."))
+   (if-let [missing-inputs (input-incomplete? driver program)]
+     ;; TODO: Warn in dev mode for programs missing :id key
+     ;; Should we make this pass the missing inputs so tooling can
+     ;; catch it and present it to the user, e.g. in a shadertoy/live
+     ;; editor?
+     (throw (js/Error. (str "Program '" (pr-str (:id program)) "' inputs are incomplete."  (pr-str (map (juxt :name :type) missing-inputs)))))
      (let [c (if-let [c (:count opts)]
                c
                (draw-count driver program))
@@ -80,8 +88,8 @@
   ([driver program opts]
     (draw-elements* driver program opts nil))
   ([driver program opts target]
-    (if (not (input-complete? driver program))
-     (throw (js/Error. "Program inputs are incomplete."))
+   (if-let [missing-inputs (input-incomplete? driver program)]
+     (throw (js/Error. (str "Program '" (pr-str (:id program)) "' inputs are incomplete."  (pr-str (map (juxt :name :type) missing-inputs)))))
      (gd/draw-elements
       (gdp/gl driver)
        program
