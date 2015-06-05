@@ -1,7 +1,8 @@
 (ns gamma-driver.drivers.basic
   (:require
     [gamma-driver.api :as gd]
-    [gamma-driver.protocols :as gdp]))
+    [gamma-driver.protocols :as gdp]
+    [goog.webgl :as ggl]))
 
 
 
@@ -20,10 +21,16 @@
 
 
 (defn input [driver program binder-fn variable new-spec]
-  (let [{:keys [input-fn input-state]} driver
-        old-spec (get-in @input-state [program variable] {})
-        new-spec (input-fn driver program binder-fn variable old-spec new-spec)]
-    (swap! input-state assoc-in [program variable] new-spec)))
+  (let [{:keys [input-fn input-state]} driver]
+    (if (= :element-index (:tag variable))
+      (let [old-spec (get-in @input-state [program variable] {})
+            new-spec (input-fn driver program binder-fn variable old-spec new-spec)]
+        (swap! input-state assoc-in [program variable] new-spec)
+        (swap! input-state assoc-in [variable] new-spec))
+      (let [old-spec (get-in @input-state [program variable] {})
+            new-spec (input-fn driver program binder-fn variable old-spec new-spec)]
+        (swap! input-state assoc-in [program variable] new-spec)))))
+
 
 
 (defn default-input-fn [driver program binder-fn variable old-spec new-spec]
@@ -72,16 +79,18 @@
      ;; catch it and present it to the user, e.g. in a shadertoy/live
      ;; editor?
      (throw (js/Error. (str "Program '" (pr-str (:id program)) "' inputs are incomplete."  (pr-str (map (juxt :name :type) missing-inputs)))))
-     (let [c (if-let [c (:count opts)]
-               c
-               (draw-count driver program))
-           new-opts (assoc opts :count c)]
-       (gd/draw-arrays
-        (gdp/gl driver)
-        program
-        ;; should supply below as an arg, with defaults
-        new-opts
-        target)))))
+     (if
+
+       (let [c (if-let [c (:count opts)]
+                c
+                (draw-count driver program))
+            new-opts (assoc opts :count c)]
+        (gd/draw-arrays
+          (gdp/gl driver)
+          program
+          ;; should supply below as an arg, with defaults
+          new-opts
+          target))))))
 
 
 (defn draw-elements*
@@ -90,17 +99,23 @@
   ([driver program opts target]
    (if-let [missing-inputs (input-incomplete? driver program)]
      (throw (js/Error. (str "Program '" (pr-str (:id program)) "' inputs are incomplete."  (pr-str (map (juxt :name :type) missing-inputs)))))
-     (gd/draw-elements
-      (gdp/gl driver)
-       program
-       ;; should supply below as an arg, with defaults
-       {:draw-mode  (:draw-mode opts :triangles)
-        :first      0
-        ;; Should we just throw an error if :index-type isn't specified,
-        ;; rather than default to :unsigned-short?  Seems kinder.
-        :index-type :unsigned-short
-        :count      (:count opts)}
-       target))))
+     (if-let [index (get-in @(:input-state driver) [program {:tag :element-index}])]
+       (do
+         (when (not= index (get-in @(:input-state driver) [{:tag :element-index}]))
+           (.bindBuffer (:gl driver) ggl/ELEMENT_ARRAY_BUFFER (:element-array-buffer index))
+           (swap! (:input-state driver) assoc {:tag :element-index} index))
+         (gd/draw-elements
+           (gdp/gl driver)
+           program
+           ;; should supply below as an arg, with defaults
+           {:draw-mode  (:draw-mode opts :triangles)
+            :first      0
+            ;; Should we just throw an error if :index-type isn't specified,
+            ;; rather than default to :unsigned-short?  Seems kinder.
+            :index-type :unsigned-short
+            :count      (:count opts)}
+           target))
+       (throw (js/Error. "Program '" (pr-str (:id program)) "' missing element index"))))))
 
 
 
