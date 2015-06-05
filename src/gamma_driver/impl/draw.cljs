@@ -55,6 +55,7 @@
      (do
        (.bindFramebuffer gl ggl/FRAMEBUFFER (:frame-buffer target))
        (draw-elements gl program opts)
-       (.bindFramebuffer gl ggl/FRAMEBUFFER nil))
+       (.bindFramebuffer gl ggl/FRAMEBUFFER nil)
+       target)
      (draw-elements gl program opts))))
 
