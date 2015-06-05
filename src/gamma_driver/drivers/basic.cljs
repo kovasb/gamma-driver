@@ -79,18 +79,16 @@
      ;; catch it and present it to the user, e.g. in a shadertoy/live
      ;; editor?
      (throw (js/Error. (str "Program '" (pr-str (:id program)) "' inputs are incomplete."  (pr-str (map (juxt :name :type) missing-inputs)))))
-     (if
-
-       (let [c (if-let [c (:count opts)]
-                c
-                (draw-count driver program))
-            new-opts (assoc opts :count c)]
-        (gd/draw-arrays
-          (gdp/gl driver)
-          program
-          ;; should supply below as an arg, with defaults
-          new-opts
-          target))))))
+     (let [c (if-let [c (:count opts)]
+               c
+               (draw-count driver program))
+           new-opts (assoc opts :count c)]
+       (gd/draw-arrays
+         (gdp/gl driver)
+         program
+         ;; should supply below as an arg, with defaults
+         new-opts
+         target)))))
 
 
 (defn draw-elements*
