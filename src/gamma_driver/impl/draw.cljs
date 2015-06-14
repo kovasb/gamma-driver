@@ -58,3 +58,27 @@
        (.bindFramebuffer gl ggl/FRAMEBUFFER nil))
      (draw-elements gl program opts))))
 
+(defn draw-elements-instanced
+  ([gl program opts]
+   ;; Extension shouldn't be in opts, it should be in the driver state
+   ;; somewhere
+   (let [instanced-arrays-ext (:ext opts)
+         draw-mode            (let [dm (:draw-mode opts)]
+                                (if (integer? dm)
+                                  dm
+                                  (draw-modes (:draw-mode opts))))
+         cnt                  (:count opts)
+         data-type            (element-types (:index-type opts) ggl/UNSIGNED_SHORT)
+         offset               (* (get {:unsigned-byte 1 :unsigned-short 2} (:index-type opts)) (:first opts))
+         instance-count       (:instance-count opts)]
+     (.useProgram gl (:program program))
+     (.drawElementsInstancedANGLE instanced-arrays-ext draw-mode cnt data-type offset instance-count)))
+  ([gl program opts target]
+   (if target
+     (do
+       (.bindFramebuffer gl ggl/FRAMEBUFFER (:frame-buffer target))
+       (draw-elements-instanced gl program opts)
+       (.bindFramebuffer gl ggl/FRAMEBUFFER nil)
+       target)
+     (draw-elements-instanced gl program opts))))
+

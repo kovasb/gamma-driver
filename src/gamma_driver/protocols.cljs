@@ -25,4 +25,5 @@
 
 (defprotocol IDraw
   (draw-arrays [this program spec] [this program spec target])
-  (draw-elements [this program spec] [this program spec target]))
+  (draw-elements [this program spec] [this program spec target])
+  (draw-elements-instanced [this program spec] [this program spec target]))
