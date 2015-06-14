@@ -78,7 +78,7 @@
      ;; Should we make this pass the missing inputs so tooling can
      ;; catch it and present it to the user, e.g. in a shadertoy/live
      ;; editor?
-     (throw (js/Error. (str "Program '" (pr-str (:id program)) "' inputs are incomplete."  (pr-str (map (juxt :name :type) missing-inputs)))))
+     (throw (js/Error. (str "Program '" (pr-str (:id program)) "' inputs are incomplete."  (pr-str (map (juxt :name :type) missing-inputs)) ", given: " (pr-str @(:input-state driver)))))
      (let [c (if-let [c (:count opts)]
                c
                (draw-count driver program))
@@ -113,12 +113,38 @@
             :index-type :unsigned-short
             :count      (:count opts)}
            target))
-       (throw (js/Error. "Program '" (pr-str (:id program)) "' missing element index"))))))
+       (throw (js/Error. (str "Program '" (pr-str (:id program)) "' missing element index")))))))
+
+(defn draw-elements-instanced*
+  ([driver program opts]
+    (draw-elements-instanced* driver program opts nil))
+  ([driver program opts target]
+   (if-let [missing-inputs (input-incomplete? driver program)]
+     (throw (js/Error. (str "Program '" (pr-str (:id program)) "' inputs are incomplete."  (pr-str (map (juxt :name :type) missing-inputs)))))
+     (if-let [index (get-in @(:input-state driver) [program {:tag :element-index}])]
+       (do
+         (when (not= index (get-in @(:input-state driver) [{:tag :element-index}]))
+           (.bindBuffer (:gl driver) ggl/ELEMENT_ARRAY_BUFFER (:element-array-buffer index))
+           (swap! (:input-state driver) assoc {:tag :element-index} index))
+         (gd/draw-elements-instanced
+           (gdp/gl driver)
+           program
+           ;; should supply below as an arg, with defaults
+           {:draw-mode      (:draw-mode opts :triangles)
+            :first          0
+            ;; Should we just throw an error if :index-type isn't specified,
+            ;; rather than default to :unsigned-short?  Seems kinder.
+            :index-type     :unsigned-short
+            :count          (:count opts)
+            :ext            (:ext opts)
+            :instance-count (:instance-count opts)}
+           target))
+       (throw (js/Error. (str "Program '" (pr-str (:id program)) "' missing element index")))))))
 
 
 
 
-(defrecord BasicDriver [gl resource-state mapping-fn input-state input-fn produce-fn]
+(defrecord BasicDriver [gl name resource-state mapping-fn input-state input-fn produce-fn]
   gdp/IContext
   (configure [this spec] (gd/configure gl spec))
   (gl [this] gl)
@@ -168,17 +194,20 @@
   (draw-arrays [this program spec] (draw-arrays* this program spec))
   (draw-arrays [this program spec target] (draw-arrays* this program spec target))
   (draw-elements [this program spec] (draw-elements* this program spec))
-  (draw-elements [this program spec target] (draw-elements* this program spec target)))
+  (draw-elements [this program spec target] (draw-elements* this program spec target))
+  (draw-elements-instanced [this program spec] (draw-elements-instanced* this program spec))
+  (draw-elements-instanced [this program spec target] (draw-elements-instanced* this program spec target)))
 
 
-(defn basic-driver [gl]
+(defn basic-driver [gl & [name]]
   (map->BasicDriver
-    {:gl gl
-     :resource-state (atom {})
-     :mapping-fn (fn [x] (or (:id x) (:element x) x))
-     :input-state (atom {})
-     :input-fn default-input-fn
-     :produce-fn default-produce-fn}))
+   {:gl             gl
+    :name           (or name "default")
+    :resource-state (atom {})
+    :mapping-fn     (fn [x] (or (:id x) (:element x) x))
+    :input-state    (atom {})
+    :input-fn       default-input-fn
+    :produce-fn     default-produce-fn}))
 
 
 (comment

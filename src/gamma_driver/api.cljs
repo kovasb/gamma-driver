@@ -146,6 +146,16 @@
      (gdp/draw-elements this program spec target)
      (draw/draw-elements this program spec target))))
 
+(defn draw-elements-instanced
+  ([this program spec]
+   (if (satisfies? gdp/IDraw this)
+     (gdp/draw-elements-instanced this program spec)
+     (draw/draw-elements-instanced this program spec)))
+  ([this program spec target]
+   (if (satisfies? gdp/IDraw this)
+     (gdp/draw-elements-instanced this program spec target)
+     (draw/draw-elements-instanced this program spec target))))
+
 
 
 
