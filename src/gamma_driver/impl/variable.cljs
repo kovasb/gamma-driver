@@ -18,6 +18,15 @@
 
 
 (defn bind-attribute [gl program attribute input]
+  (when (not ((:inputs program) attribute))
+    (throw (js/Error.
+             (str "Invalid input variable: "
+                  attribute
+                  " for program"
+                  (if-let [id (pr-str (:id program))]
+                    (str " " id ".")
+                    ".")
+                  ". Valid inputs: " (:inputs program)))))
   (let [location (attribute-location gl program attribute)
         {:keys [size type normalized? stride offset]}
         ((or (:layout input) default-layout) attribute)]
@@ -41,6 +50,15 @@
 
 
 (defn bind-uniform [gl program uniform input]
+  (when (not ((:inputs program) uniform))
+    (throw (js/Error.
+             (str "Invalid input variable: "
+                  uniform
+                  " for program"
+                  (if-let [id (pr-str (:id program))]
+                    (str " " id ".")
+                    ".")
+                  ". Valid inputs: " (:inputs program)))))
   (let [location (uniform-location gl program uniform)
         type (:type uniform)
         data (:data input)]
@@ -66,6 +84,15 @@
 
 
 (defn bind-texture-uniform [gl program uniform texture]
+  (when (not ((:inputs program) uniform))
+    (throw (js/Error.
+             (str "Invalid input variable: "
+                  uniform
+                  " for program"
+                  (if-let [id (pr-str (:id program))]
+                    (str " " id ".")
+                    ".")
+                  ". Valid inputs: " (:inputs program)))))
   (let [location (uniform-location gl program uniform)
         id       (:texture-id texture)
         target   (:target texture)]
