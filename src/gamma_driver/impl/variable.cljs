@@ -23,10 +23,10 @@
              (str "Invalid input variable: "
                   attribute
                   " for program"
-                  (if-let [id (pr-str (:id program))]
-                    (str " " id ".")
+                  (if-let [id (:id program)]
+                    (str " " (pr-str id) ".")
                     ".")
-                  ". Valid inputs: " (:inputs program)))))
+                  " Valid inputs: " (:inputs program)))))
   (let [location (attribute-location gl program attribute)
         {:keys [size type normalized? stride offset]}
         ((or (:layout input) default-layout) attribute)]
@@ -55,10 +55,10 @@
              (str "Invalid input variable: "
                   uniform
                   " for program"
-                  (if-let [id (pr-str (:id program))]
-                    (str " " id ".")
+                  (if-let [id (:id program)]
+                    (str " " (pr-str id) ".")
                     ".")
-                  ". Valid inputs: " (:inputs program)))))
+                  " Valid inputs: " (:inputs program)))))
   (let [location (uniform-location gl program uniform)
         type (:type uniform)
         data (:data input)]
@@ -89,10 +89,10 @@
              (str "Invalid input variable: "
                   uniform
                   " for program"
-                  (if-let [id (pr-str (:id program))]
-                    (str " " id ".")
+                  (if-let [id (:id program)]
+                    (str " " (pr-str id) ".")
                     ".")
-                  ". Valid inputs: " (:inputs program)))))
+                  " Valid inputs: " (:inputs program)))))
   (let [location (uniform-location gl program uniform)
         id       (:texture-id texture)
         target   (:target texture)]
