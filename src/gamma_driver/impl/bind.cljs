@@ -32,7 +32,7 @@
         (assoc input
                :data data
                :usage :static-draw
-               :element element
+               :element [program element]
                :count (if-let [c (:count input)]
                         c
                         (if (seqable? data)
@@ -48,7 +48,7 @@
            data (:data input)]
        (assoc input
          :tag :uniform
-         :element element
+         :element [program element]
          :data (if (array? data)
                  data
                  (clj->js (flatten [data]))))))))
@@ -69,7 +69,7 @@
                           ;; Probably already flattened, but keeping it here for now
                           :data data
                           :usage :static-draw
-                          :element element
+                          :element [program element]
                           :count (if-let [c (:count input)]
                                    c
                                    (count (:data input)))))]
