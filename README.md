@@ -28,7 +28,7 @@ In Gamma-WebGL we model state and operators as Clojure records. Operators implem
 
 for instance, to draw into the default renderbuffer:
 
-```(operate! (DrawArrays. context start count) (DefaultRenderbuffer. context))```
+```(operate! (DrawArrays. context start count) (DefaultFramebuffer. context))```
 
 Pairs of ```[state operator]``` are called operations, and are a simple, declarative specification that is easy to fabricate, reason about, and optimize over. 
 
