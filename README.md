@@ -14,7 +14,7 @@ Gamma-WebGL addresses the following problems of WebGL:
 
 Gamma-WebGL embraces the fundamentally procedural, banging-on-hidden-state model of computational exposed by WebGL, and reifies these operations with Clojurescript data and protocols. 
 
-Our model is composed of three concepts: 1) state & operators, 2) drivers, and 3) routines.
+Our model is composed of three concepts: 1) state & operators, 2) routines, and 3) drivers.
 
 ## 1. State & Operators
 
