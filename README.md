@@ -52,5 +52,5 @@ Drivers implement IDriver:
 
 ```(exec! driver routine data)```
 
-Drivers provide a simple, powerful hook for modifying the behavior of the system. They can maintain their own state, and thus determine which operations are redundant. They can also wrap or replace both state and operators before invoking them.
+Drivers provide a simple, powerful hook for modifying the behavior of the system. They can maintain their own (Clojure) state, and thus determine which operations are redundant. They can also wrap or replace both state and operators before invoking them.
 
