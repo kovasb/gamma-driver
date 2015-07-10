@@ -16,7 +16,7 @@ Gamma-WebGL embraces the fundamentally procedural, banging-on-hidden-state model
 
 Our model is composed of three concepts: 1) state & operators, 2) drivers, and 3) routines.
 
-## 1) State & Operators
+## 1. State & Operators
 
 The GPU is a black hole that data dissapears into. WebGL objects such as arraybuffers and textures are just pointers to GPU memory; each kind of object has a particular set of interfaces for sending data in. 
 
