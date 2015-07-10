@@ -26,7 +26,7 @@ In Gamma-WebGL we model state and operators as Clojure records. Operators implem
 
 ```(operate! operator state)```
 
-for instance, to draw into the default renderbuffer:
+for instance, to draw into the default framebuffer:
 
 ```(operate! (DrawArrays. context start count) (DefaultFramebuffer. context))```
 
