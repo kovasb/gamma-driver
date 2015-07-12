@@ -10,6 +10,12 @@
         (.drawArrays gl mode first count)))))
 
 
+(defn draw-elements [mode count type offset]
+  (reify p/IOperator
+    (operate! [this target]
+      (let [gl (p/gl target)]
+        (.drawElements gl mode count type offset)))))
+
 (comment
 
   (defn clear [gl spec])

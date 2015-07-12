@@ -1,28 +1,60 @@
 (ns gamma.webgl.arraybuffer
-  (:require [gamma.webgl.api :as p]
+  (:require [gamma.webgl.api :as api]
             [goog.webgl :as ggl]))
 
-
 (defrecord ArrayBuffer [context arraybuffer]
-  p/IInput
+  api/IInput
   (input! [this data]
+    (.bindBuffer (api/gl context) ggl/ARRAY_BUFFER arraybuffer)
     (.bufferData
-      (p/gl context)
+      (api/gl context)
       ggl/ARRAY_BUFFER
       data
       ggl/STATIC_DRAW))
-  p/IArraybuffer
+  api/IArraybuffer
   (arraybuffer [this] arraybuffer)
-  (layout [this] nil))
+  (layout [this] nil)
+  api/IOperator
+  (operate! [this attribute]
+    (api/input! attribute this))
+
+  )
+
 
 (defn array-buffer [context]
-  (let [gl (p/gl context)
+  (let [gl (api/gl context)
         ab (.createBuffer gl)]
     (.bindBuffer gl ggl/ARRAY_BUFFER ab)
     (ArrayBuffer. context ab)))
 
 
+(defrecord ElementArrayBuffer [context arraybuffer]
+  api/IInput
+  (input! [this data]
+    (.bindBuffer (api/gl context) ggl/ELEMENT_ARRAY_BUFFER arraybuffer)
+    (.bufferData
+      (api/gl context)
+      ggl/ELEMENT_ARRAY_BUFFER
+      data
+      ggl/STATIC_DRAW))
+  api/IElementArraybuffer
+  (element-arraybuffer [this] arraybuffer))
 
+
+(defn element-array-buffer [context]
+  (let [gl (api/gl context)
+        ab (.createBuffer gl)]
+    (.bindBuffer gl ggl/ELEMENT_ARRAY_BUFFER ab)
+    (ElementArrayBuffer. context ab)))
+
+(defrecord CurrentElementArray [context]
+  api/IInput
+  (input! [this data]
+    (.bindBuffer (api/gl context) ggl/ELEMENT_ARRAY_BUFFER (api/element-arraybuffer data))))
+
+
+(defn current-element-array [context]
+  (CurrentElementArray. context))
 
 
 (comment

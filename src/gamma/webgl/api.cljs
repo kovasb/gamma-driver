@@ -29,6 +29,9 @@
   (arraybuffer [this])
   (layout [this]))
 
+(defprotocol IElementArraybuffer
+  (element-arraybuffer [this]))
+
 (defprotocol ITexture
   (texture [this]))
 

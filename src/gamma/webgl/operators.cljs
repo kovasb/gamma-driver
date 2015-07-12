@@ -7,10 +7,19 @@
     (operate! [this target]
       (p/input! target x))))
 
-(defn ->input-vector-vector [v]
-  (reify p/IOperator
-    (operate! [this target]
-      (p/input! target (js/Float32Array. (clj->js (flatten v)))))))
+(defrecord InputVectorVector [v type]
+  p/IOperator
+  (operate! [this target]
+    (p/input!
+      target
+      (if (= type :uint16)
+        (js/Uint16Array. (clj->js (flatten v)))
+        (js/Float32Array. (clj->js (flatten v)))))))
+
+(defn ->input-vector-vector
+  ([v] (InputVectorVector. v :float32))
+  ([v t] (InputVectorVector. v t)))
+
 
 (defn ->input-vector [v]
   (reify p/IOperator

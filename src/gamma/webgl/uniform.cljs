@@ -22,6 +22,8 @@
     nil))
 
 (defrecord Uniform [context program variable location]
+  p/IVariable
+  (location [this] location)
   p/IInput
   (input! [this data]
     ;; inputfn could be statically set at init time
