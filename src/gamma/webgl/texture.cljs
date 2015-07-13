@@ -124,8 +124,7 @@
         format
         format
         type
-        (:data spec))
-      )))
+        (:data spec)))))
 
 
 (defrecord TextureObject [texture]
@@ -134,6 +133,45 @@
 
 (defn texture-object [ctx]
   (TextureObject. (.createTexture (api/gl ctx))))
+
+
+(defrecord FramebufferTexture2D [ctx texture]
+  api/IOperator
+  (operate! [this texture-unit]
+    (.activeTexture (api/gl ctx) (+ ggl/TEXTURE0 (:id texture-unit)))
+    (.bindTexture (api/gl ctx) ggl/TEXTURE_2D texture))
+  api/IFramebufferAttachment
+  (attach [this attachment-point]
+    (.framebufferTexture2D
+      (api/gl ctx)
+      ggl/FRAMEBUFFER
+      attachment-point
+      ggl/TEXTURE_2D
+      texture
+      0)))
+
+
+(defn framebuffer-texture2d [ctx opts]
+  (let [gl (api/gl ctx)
+        tex (.createTexture gl)
+        target ggl/TEXTURE_2D
+        format ggl/RGBA
+        type ggl/UNSIGNED_BYTE]
+    (.bindTexture gl ggl/TEXTURE_2D tex)
+    (.texParameteri gl ggl/TEXTURE_2D ggl/TEXTURE_MIN_FILTER ggl/LINEAR)
+    (.texImage2D
+     gl
+     target
+     0
+     format
+     (:width opts)
+     (:height opts)
+     0
+     format
+     type
+     nil)
+    (FramebufferTexture2D. ctx tex)))
+
 
 (comment
 

@@ -38,5 +38,8 @@
 (defprotocol IVariable
   (location [this]))
 
+(defprotocol IFramebufferAttachment
+  (attach [this attachment-point]))
+
 
 

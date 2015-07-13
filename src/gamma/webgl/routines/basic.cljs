@@ -68,12 +68,14 @@
          attrs->abs (attrs->abs ctx attrs->inputs)
          ;; creates new local resources
 
-         static-ops (static-ops
-                      (merge attrs->abs opts)
-                      ;; map inputspec to new targets (buffer or texture unit)
-                      inputs
-                      ;; original inputs
-                      )
+         static-ops (concat
+                      [[(shader/current-shader ctx) (operators/->input shader)]]
+                      (static-ops
+                       (merge attrs->abs opts)
+                       ;; map inputspec to new targets (buffer or texture unit)
+                       inputs
+                       ;; original inputs
+                       ))
          ;; [textureUniform textureUnit]
 
          data->targets (merge inputs attrs->abs)
@@ -142,14 +144,31 @@
 (defn routines [x]
   (Routines. x))
 
+(defrecord CurrentFramebuffer [ctx])
 
-(defrecord DrawArrays [target]
+(defn current-framebuffer [ctx]
+  (CurrentFramebuffer. ctx))
+
+(defrecord DefaultFramebuffer [ctx]
+  api/IOperator
+  (operate! [this _]
+    (.bindFramebuffer (api/gl ctx) ggl/FRAMEBUFFER nil)))
+
+(defn default-framebuffer [ctx]
+  (DefaultFramebuffer. ctx))
+
+
+(defrecord DrawArrays [ctx current-fb fb]
   api/IRoutine
   (ops [this data]
-    [[target (draw/draw-arrays ggl/TRIANGLES (:start data) (:count data))]]))
+    [[current-fb fb]
+     [ctx (draw/draw-arrays ggl/TRIANGLES (:start data) (:count data))]]))
 
-(defn draw-arrays [ctx]
-  (DrawArrays. ctx))
+(defn draw-arrays
+  ([ctx]
+    (draw-arrays ctx (default-framebuffer ctx)))
+  ([ctx fb]
+   (DrawArrays. ctx (current-framebuffer ctx) fb)))
 
 
 (comment

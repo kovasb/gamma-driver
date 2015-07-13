@@ -3,11 +3,14 @@
     [gamma.webgl.api :as p]))
 
 
+(defrecord DrawArrays [mode first count]
+  p/IOperator
+  (operate! [this target]
+    (let [gl (p/gl target)]
+      (.drawArrays gl mode first count))))
+
 (defn draw-arrays [mode first count]
-  (reify p/IOperator
-    (operate! [this target]
-      (let [gl (p/gl target)]
-        (.drawArrays gl mode first count)))))
+  (DrawArrays. mode first count))
 
 
 (defn draw-elements [mode count type offset]
