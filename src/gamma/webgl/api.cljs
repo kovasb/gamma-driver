@@ -36,7 +36,8 @@
   (texture [this]))
 
 (defprotocol IVariable
-  (location [this]))
+  (location [this])
+  (variable [this]))
 
 (defprotocol IFramebufferAttachment
   (attach [this attachment-point]))

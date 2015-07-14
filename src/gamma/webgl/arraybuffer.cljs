@@ -1,5 +1,6 @@
 (ns gamma.webgl.arraybuffer
   (:require [gamma.webgl.api :as api]
+            [gamma.webgl.attribute :as attr]
             [goog.webgl :as ggl]))
 
 (defrecord ArrayBuffer [context arraybuffer]
@@ -16,9 +17,20 @@
   (layout [this] nil)
   api/IOperator
   (operate! [this attribute]
-    (api/input! attribute this))
+    (attr/bind-attribute context attribute this)))
+
+
+(comment
+  [[:bindBuffer :arraybuffer ab]
+   [:bufferData :arraybuffer data :static-draw]
+
+
+
+
+   ]
 
   )
+
 
 
 (defn array-buffer [context]
@@ -46,6 +58,8 @@
         ab (.createBuffer gl)]
     (.bindBuffer gl ggl/ELEMENT_ARRAY_BUFFER ab)
     (ElementArrayBuffer. context ab)))
+
+
 
 (defrecord CurrentElementArray [context]
   api/IInput
