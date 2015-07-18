@@ -27,8 +27,8 @@
      (fn [[t o]]
        [[:useProgram :gl o]])
 
-    [{:tag :arraybuffer} {:tag :data}]
-    (fn [[t o]] (ab/arraybuffer-input t (:data o)))
+    [{:tag :arraybuffer} {}]
+    (fn [[t o]] (ab/arraybuffer-input t o))
 
     [{:tag :current-framebuffer} {:tag :default-framebuffer}]
     (fn [[t o]] (fb/bind-fb nil))
@@ -86,7 +86,7 @@
                  rules
                  x))]
         (f x)))
-    (set (apply concat ops))))
+    (set (filter map? (flatten ops)))))
 
 
 

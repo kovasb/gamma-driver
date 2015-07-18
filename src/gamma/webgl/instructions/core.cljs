@@ -2,9 +2,6 @@
 
 
 
-
-
-
 (defn bindBuffer [a b c]
   (.bindBuffer a b c))
 

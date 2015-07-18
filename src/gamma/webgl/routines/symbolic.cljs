@@ -7,8 +7,11 @@
 (defn arraybuffer []
   {:tag :arraybuffer :id (nid)})
 
+(defn ->path [x]
 
-(defn shader-input [shader input-map]
+  {:tag :path :path x})
+
+(defn shader-input [path shader]
   (let [shader-inputs (:inputs shader)
         sid (:id shader)
         attrs
@@ -28,54 +31,30 @@
         ]
     (concat
       attrs->buffers
-      (map (fn [[k v]] [(inputs (assoc k :shader sid)) v]) input-map))))
+      (map
+        (fn [[k v]] [(inputs (assoc k :shader sid)) v])
+        (map (fn [x] [x [:get-in :env (->path (conj path x))]])
+             shader-inputs)))))
+
+
 
 
 (defn texture-init [texture-unit texture]
   [[texture-unit texture]])
 
-(defn draw-arrays [fb data]
+(defn draw-arrays [path fb]
   [[{:tag :current-framebuffer} fb]
-   [{:tag :current-framebuffer} {:tag :draw-arrays :start (:start data) :count (:count data)}]])
+   [{:tag :current-framebuffer} {:tag   :draw-arrays
+                                 :start [:get-in :env (->path (conj path :start))]
+                                 :count [:get-in :env (->path (conj path :count))]}]])
 
 (defn default-framebuffer []
   {:tag :default-framebuffer})
 
-(defn draw [shader input-map]
+(defn draw [path shader]
   (concat
     [[{:tag :current-shader} shader]]
-    (shader-input shader (:data input-map))
-    (draw-arrays (default-framebuffer) (:draw input-map))))
+    (shader-input (conj path (:id shader)) shader)
+    (draw-arrays  (conj path :draw) (default-framebuffer))))
 
 
-(comment
-  (let [a1 {:tag :variable :storage :attribute :name "foo"}]
-    (shader-input
-     {:id :s1 :inputs [a1]}
-     {a1 :a1-data}))
-
-  (def x
-    (let [a1 {:tag :variable :storage :attribute :name "foo" :type :vec2}]
-     (draw
-       {:id :s1 :inputs [a1]}
-       {:data {a1 {:tag :data :data :a1-data}} :draw {:start 0 :count 3}})))
-
-  (require '[gamma.webgl.operations :as ops] :reload)
-
-  (ops/instructions ops/rules x)
-
-  (first ops/rules)
-  (first x)
-
-  (ops/match? (first (first ops/rules)) (first x))
-
-  (nth x 1)
-
-  (last (first (filter #(ops/match? (first %) (nth x 1)) ops/rules)))
-
-
-  )
-
-(comment
-  [[current-fb fb]
-   [ctx (draw/draw-arrays ggl/TRIANGLES (:start data) (:count data))]])

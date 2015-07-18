@@ -33,14 +33,19 @@
 
 (defn interpreter [init]
   (let [s (atom (merge (intrinsics) init))]
-    (swap! s assoc :assign (fn [k v] (swap! s assoc k v)))
+    (swap! s assoc
+           :assign (fn [k v] (swap! s assoc k v))
+           :get-in (fn [x y] (get-in (x) (:path y)))
+           :env (fn [] @s))
     (Interpreter. s)))
 
 
 (defn eval* [init instructions]
   (let [s (atom init)
         i (Interpreter. s)]
-    (swap! s assoc :assign (fn [k v] (swap! s assoc k v)))
+    (swap! s assoc
+           :assign (fn [k v] (swap! s assoc k v))
+           )
     (-eval i instructions)))
 
 

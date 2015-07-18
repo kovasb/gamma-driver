@@ -21,10 +21,11 @@
       [gamma.webgl.operations :as ops]
       [cljs.pprint :as pprint]
       [gamma.webgl.routines.symbolic :as r]
+      [gamma.webgl.driver :as driver]
 
       ))
 
-  (require '[gamma.webgl.routines.symbolic :as r])
+
 
 
   (def pos-attribute (g/attribute "posAttr" :vec2))
@@ -37,38 +38,26 @@
        :fragment-shader {(g/gl-frag-color) (g/vec4 1 0 0 1)}}))
 
 
-  (defn run [shader data]
-    (let [ops
-          (r/draw
-            (assoc (shader/Shader. shader) :tag :shader)
-            data)
-          i (itr/interpreter {:gl (.getContext
-                                    (.getElementById js/document "gl-canvas")
-                                    "webgl")})
-          is (ops/instructions ops/rules ops)
-          init (mapcat identity (ops/initialization ops/inits ops))
-          ]
-      (dorun (itr/-eval i init))
-      (dorun (itr/-eval i is))))
+  (defn get-context [id]
+    (.getContext
+      (.getElementById js/document id)
+      "webgl"))
+
+  (defn ->float32 [x]
+    (js/Float32Array.
+      (clj->js (flatten x))))
+
+  (let [ops (r/draw [:root] (example-shader))
+        driver (driver/driver
+                 {:gl (get-context "gl-canvas")}
+                 ops)]
+    (driver/exec!
+      driver
+      {:hello-triangle {pos-attribute (->float32 [[-1 0] [0 1] [1 0.5]])}
+       :draw           {:start 0 :count 3}}))
 
 
-  (def ops
-    (r/draw
-      (assoc (shader/Shader. (example-shader)) :tag :shader)
-      {:data {pos-attribute {:tag :data :data (js/Float32Array. (clj->js [0 0 0 1 1 0]))}}
-       :draw {:start 0 :count 3}}))
-
-  (def i (itr/interpreter {:gl (.getContext
-                                 (.getElementById js/document "gl-canvas")
-                                 "webgl")}))
-
-  (def is (ops/instructions ops/rules ops))
-  (def init (mapcat identity (ops/initialization ops/inits ops)))
-
-  (do (itr/-eval i init)
-      (itr/-eval i is))
-
-
+  ;;;;;
   (def pos-varying (g/varying "posVarying" :vec2 :mediump))
 
   (defn example-shader2 []
@@ -104,8 +93,7 @@
     )
 
   (run (example-shader2)
-       {:data {pos-attribute {:tag :data :data (js/Float32Array. (clj->js [-1 -1 1 -1 -1 1
-                                                                           1 1 1 -1 -1 1]))}}
+       {:data {pos-attribute {:tag :data :data (js/Float32Array. (clj->js [-1 -1 1 -1 -1 1 1 1 1 -1 -1 1]))}}
         :draw {:start 0 :count 6}})
 
   (run (example-shader)
