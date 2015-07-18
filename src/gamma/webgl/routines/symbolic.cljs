@@ -30,9 +30,15 @@
                  attrs->buffers)
         ]
     (concat
-      attrs->buffers
+      ;; :bind-attribute
+      (map (fn [[a b]] [:bind-attribute a b]) attrs->buffers)
       (map
-        (fn [[k v]] [(inputs (assoc k :shader sid)) v])
+        ;; bind uniforms and buffers
+        (fn [[k v]]
+          (let [k2 (inputs (assoc k :shader sid))]
+            [(if (= :variable (:tag k2)) :bind-uniform :bind-arraybuffer)
+            k2
+            v]))
         (map (fn [x] [x [:get-in :env (->path (conj path x))]])
              shader-inputs)))))
 
@@ -43,18 +49,18 @@
   [[texture-unit texture]])
 
 (defn draw-arrays [path fb]
-  [[{:tag :current-framebuffer} fb]
-   [{:tag :current-framebuffer} {:tag   :draw-arrays
-                                 :start [:get-in :env (->path (conj path :start))]
-                                 :count [:get-in :env (->path (conj path :count))]}]])
+  [[:bind-framebuffer fb]
+   [:draw-arrays
+    [:get-in :env (->path (conj path :start))]
+    [:get-in :env (->path (conj path :count))]]])
 
 (defn default-framebuffer []
   {:tag :default-framebuffer})
 
 (defn draw [path shader]
   (concat
-    [[{:tag :current-shader} shader]]
+    [[:current-shader shader]]
     (shader-input (conj path (:id shader)) shader)
-    (draw-arrays  (conj path :draw) (default-framebuffer))))
+    (draw-arrays  (conj path :draw) nil)))
 
 

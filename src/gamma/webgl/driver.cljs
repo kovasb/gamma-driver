@@ -5,8 +5,8 @@
 
 (defn driver [state ops]
   {:ops ops
-   :init (mapcat identity (ops/initialization ops/inits ops))
-   :loop (ops/instructions ops/rules ops)
+   :init (mapcat identity (ops/initialization ops))
+   :loop (ops/rewrite ops)
    :init? (atom false)
    :interpreter (itr/interpreter state)})
 

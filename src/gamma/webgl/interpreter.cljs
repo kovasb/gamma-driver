@@ -35,7 +35,9 @@
   (let [s (atom (merge (intrinsics) init))]
     (swap! s assoc
            :assign (fn [k v] (swap! s assoc k v))
-           :get-in (fn [x y] (get-in (x) (:path y)))
+           :get-in (fn [x y] (let [r (get-in (x) (:path y))]
+                               (println [(:path y) r])
+                                r))
            :env (fn [] @s))
     (Interpreter. s)))
 
@@ -49,19 +51,4 @@
     (-eval i instructions)))
 
 
-
-
-
-
-(comment
-  (let [env (merge
-              (instrinsics)
-              {{:tag :program :program 1}
-               program-source})])
-
-  (eval* {:a vector} [[:assign :b 1] :b])
-
-  {:tag :data-path :data-path [:a :b :c :d ]}
-
-  )
 

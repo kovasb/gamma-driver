@@ -32,10 +32,13 @@
 
 
   (defn example-shader []
-    (p/program
-      {:id :hello-triangle
-       :vertex-shader {(g/gl-position) (g/vec4 pos-attribute 0 1)}
-       :fragment-shader {(g/gl-frag-color) (g/vec4 1 0 0 1)}}))
+    (assoc
+      (shader/Shader.
+       (p/program
+         {:id              :hello-triangle
+          :vertex-shader   {(g/gl-position) (g/vec4 pos-attribute 0 1)}
+          :fragment-shader {(g/gl-frag-color) (g/vec4 1 0 0 1)}}))
+      :tag :shader))
 
 
   (defn get-context [id]
@@ -47,14 +50,47 @@
     (js/Float32Array.
       (clj->js (flatten x))))
 
-  (let [ops (r/draw [:root] (example-shader))
+  (let [ops (r/draw [:root]
+                    (example-shader))
         driver (driver/driver
                  {:gl (get-context "gl-canvas")}
                  ops)]
     (driver/exec!
       driver
-      {:hello-triangle {pos-attribute (->float32 [[-1 0] [0 1] [1 0.5]])}
+      {:hello-triangle {pos-attribute
+                        (->float32 [[-1 0] [0 1] [1 -1]])}
        :draw           {:start 0 :count 3}}))
+
+ (comment
+  (def ops
+    (r/draw [:root]
+            (example-shader)
+            ))
+
+  (def driver (driver/driver
+                {:gl (get-context "gl-canvas")}
+                ops))
+
+  (:init? driver)
+  (:loop driver)
+  (:ops driver)
+
+  (ops/rewrite (:ops driver))
+
+  ;; implement:
+  :bind-attribute
+  :bind-uniform
+  :bind-arraybuffer
+  :draw-arrays
+
+
+
+
+  (clojure.walk/postwalk #(if (vector? %)
+                           (reverse %) %)
+                         [[1 2] [3 4] [5 6]]
+                         ))
+
 
 
   ;;;;;
@@ -101,8 +137,4 @@
         :draw {:start 0 :count 3}})
 
 
-  (println (:glsl (:fragment-shader (example-shader2))))
-
-
-
-  )
+  (println (:glsl (:fragment-shader (example-shader2)))))
