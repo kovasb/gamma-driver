@@ -3,17 +3,22 @@
     [gamma.webgl.api :as api]
     [goog.webgl :as ggl]))
 
+(defn attach-rb [rb attachment-point]
+  [:framebufferRenderbuffer
+   ggl/FRAMEBUFFER
+   attachment-point
+   ggl/RENDERBUFFER
+   rb])
 
-(defrecord RenderBuffer [ctx renderbuffer]
-  api/IFramebufferAttachment
-  (attach [this attachment-point]
-    (let [gl (api/gl ctx)]
-      (.framebufferRenderbuffer
-       gl
-       ggl/FRAMEBUFFER
-       attachment-point
-       ggl/RENDERBUFFER
-       renderbuffer))))
+(defn create-rb [rb]
+  [[:assign rb [:createRenderbuffer]]
+   [:bindRenderbuffer ggl/RENDERBUFFER rb]
+   [:renderbufferStorage
+    ggl/RENDERBUFFER
+    (:format rb)
+    (:width rb)
+    (:height rb)]])
+
 
 
 (def renderbuffer-formats
@@ -22,20 +27,6 @@
    :rgb5-a1 ggl/RGB5_A1
    :rgb565 ggl/RGB565
    :stencil-index8 ggl/STENCIL_INDEX8})
-
-(defn render-buffer [ctx spec]
-  (let [gl (api/gl ctx)
-        rb (.createRenderbuffer gl)
-        {:keys [width height format]} spec]
-    (.bindRenderbuffer gl ggl/RENDERBUFFER rb)
-    (.renderbufferStorage
-      gl
-      ggl/RENDERBUFFER
-      (renderbuffer-formats format)
-      width
-      height)
-    (RenderBuffer. ctx rb)))
-
 
 
 

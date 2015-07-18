@@ -8,167 +8,180 @@
     [gamma.webgl.draw :as draw]
     [gamma.webgl.texture :as texture]))
 
+(comment
+  (defn dynamic-ops [inputs->targets inputs->operators data]
+    (reduce-kv
+      (fn [init k v]
+        (conj
+          init
+          [(inputs->targets k) ((inputs->operators k) v)]))
+      []
+      data))
 
-(defn dynamic-ops [inputs->targets inputs->operators data]
-  (reduce-kv
-    (fn [init k v]
-      (conj
-        init
-        [(inputs->targets k) ((inputs->operators k) v)]))
-    []
-    data))
-
-(defrecord ShaderInput [context static-ops data->targets data->operators]
-  api/IRoutine
-  (ops [this data]
-    (concat
-      static-ops
-      (dynamic-ops data->targets data->operators data))))
-
-
-(defn attrs->abs [ctx attrs->inputs]
-  (reduce-kv
-    (fn [init k v]
-      (assoc init k (ab/array-buffer ctx)))
-    {}
-    attrs->inputs))
+  (defrecord ShaderInput [context static-ops data->targets data->operators]
+    api/IRoutine
+    (ops [this data]
+      (concat
+        static-ops
+        (dynamic-ops data->targets data->operators data))))
 
 
-
-(defn static-ops [variables->resources variables->shader-input]
-  (reduce-kv
-    (fn [init k v]
-      (conj init [(variables->shader-input k) v]))
-    []
-    variables->resources))
-
-
-(defn data->operators [data->targets]
-  (reduce-kv
-    (fn [init k v]
-      (assoc
-        init
-        k
-        (cond
-          (= :attribute (:storage k))
-          operators/->input-vector-vector
-          (= :uniform (:storage k))
-          operators/->input-vector)))
-    {}
-    data->targets))
-
-
-(defn shader-input
-  ([ctx shader] (shader-input ctx shader {}))
-  ([ctx shader opts]
-   (let [inputs (api/inputs shader)
-         attrs->inputs (select-keys
-                         inputs
-                         (filter #(= :attribute (:storage %)) (keys inputs)))
-         attrs->abs (attrs->abs ctx attrs->inputs)
-         ;; creates new local resources
-
-         static-ops (concat
-                      [[(shader/current-shader ctx) (operators/->input shader)]]
-                      (static-ops
-                       (merge attrs->abs opts)
-                       ;; map inputspec to new targets (buffer or texture unit)
-                       inputs
-                       ;; original inputs
-                       ))
-         ;; [textureUniform textureUnit]
-
-         data->targets (merge inputs attrs->abs)
-         ;; texture-uniform->texture-unit
-         data->operators (data->operators data->targets)
-         ;; texture-uniform->TextureOperator
-         ]
-     (ShaderInput. ctx static-ops data->targets data->operators))))
+  (defn attrs->abs [ctx attrs->inputs]
+    (reduce-kv
+      (fn [init k v]
+        (assoc init k (ab/array-buffer ctx)))
+      {}
+      attrs->inputs))
 
 
 
-(defrecord BasicDraw [ctx shader routine]
-  api/IRoutine
-  (ops [this data]
-    (concat
-      (api/ops routine (:state data))
-      [[(shader/current-shader ctx) (operators/->input shader)]
-       [ctx (:draw data)]])))
-
-(defn basic-draw [ctx shader]
-  (BasicDraw. ctx shader (shader-input ctx shader)))
+  (defn static-ops [variables->resources variables->shader-input]
+    (reduce-kv
+      (fn [init k v]
+        (conj init [(variables->shader-input k) v]))
+      []
+      variables->resources))
 
 
-(defrecord BasicDrawElements [ctx shader shader-input element-ab]
-  api/IRoutine
-  (ops [this data]
-    (concat
-      (api/ops shader-input (:shader data))
-      [[(shader/current-shader ctx) (operators/->input shader)]
-       [(ab/current-element-array ctx) (operators/->input element-ab)]
-       [element-ab (operators/->input-vector-vector   (:elements data) :uint16)]
-       [ctx (:draw data)]])))
+  (defn data->operators [data->targets]
+    (reduce-kv
+      (fn [init k v]
+        (assoc
+          init
+          k
+          (cond
+            (= :attribute (:storage k))
+            operators/->input-vector-vector
+            (= :uniform (:storage k))
+            operators/->input-vector)))
+      {}
+      data->targets))
 
-(defn basic-draw-elements [ctx shader]
-  (BasicDrawElements. ctx shader
-                      (shader-input ctx shader)
-                      (ab/element-array-buffer ctx)))
+  )
 
 
-(defrecord TextureInit [ctx texture texture-unit]
-  api/IRoutine
-  (ops [this data]
-    [
-     ;[texture-unit texture]
-     [texture-unit (texture/TextureImage2D. ctx texture data)]]))
 
-(defn texture-init [ctx texture-unit]
-  (TextureInit. ctx (texture/texture-object ctx) texture-unit))
+;; new shader input
+
+
+
 
 (comment
-  {:texture       {}
-  :draw-elements {:shader   X
-                  :elements X
-                  :draw     {}}
-  })
+  (defn shader-input
+   ([ctx shader] (shader-input ctx shader {}))
+   ([ctx shader opts]
+    (let [inputs (api/inputs shader)
+          attrs->inputs (select-keys
+                          inputs
+                          (filter #(= :attribute (:storage %)) (keys inputs)))
+          attrs->abs (attrs->abs ctx attrs->inputs)
+          ;; creates new local resources
+
+          static-ops (concat
+                       [[(shader/current-shader ctx) (operators/->input shader)]]
+                       (static-ops
+                         (merge attrs->abs opts)
+                         ;; map inputspec to new targets (buffer or texture unit)
+                         inputs
+                         ;; original inputs
+                         ))
+          ;; [textureUniform textureUnit]
+
+          data->targets (merge inputs attrs->abs)
+          ;; texture-uniform->texture-unit
+          data->operators (data->operators data->targets)
+          ;; texture-uniform->TextureOperator
+          ]
+      (ShaderInput. ctx static-ops data->targets data->operators)))))
 
 
-(defrecord Routines [routines]
-  api/IRoutine
-  (ops [this data]
-    (mapcat
-      (fn [[k r]]
-        (api/ops r (data k)))
-      routines)))
+(comment
+  (defrecord BasicDraw [ctx shader routine]
+    api/IRoutine
+    (ops [this data]
+      (concat
+        (api/ops routine (:state data))
+        [[(shader/current-shader ctx) (operators/->input shader)]
+         [ctx (:draw data)]])))
 
-(defn routines [x]
-  (Routines. x))
-
-(defrecord CurrentFramebuffer [ctx])
-
-(defn current-framebuffer [ctx]
-  (CurrentFramebuffer. ctx))
-
-(defrecord DefaultFramebuffer [ctx]
-  api/IOperator
-  (operate! [this _]
-    (.bindFramebuffer (api/gl ctx) ggl/FRAMEBUFFER nil)))
-
-(defn default-framebuffer [ctx]
-  (DefaultFramebuffer. ctx))
+  (defn basic-draw [ctx shader]
+    (BasicDraw. ctx shader (shader-input ctx shader)))
 
 
-(defrecord DrawArrays [ctx current-fb fb]
-  api/IRoutine
-  (ops [this data]
-    [[current-fb fb]
-     [ctx (draw/draw-arrays ggl/TRIANGLES (:start data) (:count data))]]))
+  (defrecord BasicDrawElements [ctx shader shader-input element-ab]
+    api/IRoutine
+    (ops [this data]
+      (concat
+        (api/ops shader-input (:shader data))
+        [[(shader/current-shader ctx) (operators/->input shader)]
+         [(ab/current-element-array ctx) (operators/->input element-ab)]
+         [element-ab (operators/->input-vector-vector   (:elements data) :uint16)]
+         [ctx (:draw data)]])))
 
-(defn draw-arrays
-  ([ctx]
-    (draw-arrays ctx (default-framebuffer ctx)))
-  ([ctx fb]
-   (DrawArrays. ctx (current-framebuffer ctx) fb)))
+  (defn basic-draw-elements [ctx shader]
+    (BasicDrawElements. ctx shader
+                        (shader-input ctx shader)
+                        (ab/element-array-buffer ctx)))
+
+
+  (defrecord TextureInit [ctx texture texture-unit]
+    api/IRoutine
+    (ops [this data]
+      [
+       ;[texture-unit texture]
+       [texture-unit (texture/TextureImage2D. ctx texture data)]]))
+
+  (defn texture-init [ctx texture-unit]
+    (TextureInit. ctx (texture/texture-object ctx) texture-unit))
+
+  (comment
+    {:texture       {}
+     :draw-elements {:shader   X
+                     :elements X
+                     :draw     {}}
+     })
+
+
+  (defrecord Routines [routines]
+    api/IRoutine
+    (ops [this data]
+      (mapcat
+        (fn [[k r]]
+          (api/ops r (data k)))
+        routines)))
+
+  (defn routines [x]
+    (Routines. x))
+
+  (defrecord CurrentFramebuffer [ctx])
+
+  (defn current-framebuffer [ctx]
+    (CurrentFramebuffer. ctx))
+
+  (defrecord DefaultFramebuffer [ctx]
+    api/IOperator
+    (operate! [this _]
+      (.bindFramebuffer (api/gl ctx) ggl/FRAMEBUFFER nil)))
+
+  (defn default-framebuffer [ctx]
+    (DefaultFramebuffer. ctx))
+
+
+  (defrecord DrawArrays [ctx current-fb fb]
+    api/IRoutine
+    (ops [this data]
+      [[current-fb fb]
+       [ctx (draw/draw-arrays ggl/TRIANGLES (:start data) (:count data))]]))
+
+  (defn draw-arrays
+    ([ctx]
+     (draw-arrays ctx (default-framebuffer ctx)))
+    ([ctx fb]
+     (DrawArrays. ctx (current-framebuffer ctx) fb)))
+
+
+  )
+
 
 
 (comment

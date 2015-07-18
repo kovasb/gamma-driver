@@ -12,58 +12,23 @@
    :offset 0
    :stride 0})
 
-(defn bind-attribute [context attrib buffer]
-        (let [gl (p/gl context)
-              variable (p/variable attrib)
-              location (p/location attrib)
-              bufferobject (p/arraybuffer buffer)
-              {:keys [size type normalized? stride offset]}
-              ((or (p/layout buffer) default-layout) variable)]
-          (.bindBuffer gl ggl/ARRAY_BUFFER bufferobject)
-          (.vertexAttribPointer
-            gl
-            location
-            size
-            type
-            normalized?
-            stride
-            offset)
-          (.enableVertexAttribArray gl location)))
+(defn bind-attribute [buffer layout location]
+  (let [{:keys [size type normalized? stride offset]} layout]
+    [[:bindBuffer :gl ggl/ARRAY_BUFFER buffer]
+    [:vertexAttribPointer :gl
+     location
+     size
+     type
+     normalized?
+     stride
+     offset]
+    [:enableVertexAttribArray :gl location]]))
 
-(comment
-  [:bindBuffer :arraybuffer buffer]
-  [:vertexAttribPointer
-   location
-   size
-   type
-   normalized
-   stride
-   offset]
-  [:enableVertexAttribArray location]
-
-  )
+(defn bind-attribute-instanced [buffer layout location divisor]
+  [(bind-attribute buffer layout location)
+   [:vertexAttribDivisorANGLE :gl
+    {:tag :extension :extension "ANGLE_instanced_arrays"}
+    location
+    divisor]])
 
 
-
-(defn bind-attribute-instanced [context attrib buffer divisor]
-  (bind-attribute context attrib buffer)
-  (.vertexAttribDivisorANGLE
-    ((extensions context)
-      "ANGLE_instanced_arrays")
-    (api/location attrib)
-    divisor))
-
-
-(defrecord Attribute [context program variable location]
-  p/IVariable
-  (location [this] location)
-  (variable [this] variable))
-
-
-
-(defn attribute [context program variable]
-  (let [location (.getAttribLocation
-                   (p/gl context)
-                   (p/program program)
-                   (:name variable))]
-    (Attribute. context program variable location)))
