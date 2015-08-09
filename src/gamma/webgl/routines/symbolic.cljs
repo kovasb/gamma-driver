@@ -48,59 +48,6 @@
          (= :uniform (:storage input))
          (init-uniform (assoc-sid input) (data-path input)))))))
 
-
-
-(comment
-  (defn shader-input [path shader supplied-inputs]
-   (let [shader-inputs (:inputs shader)
-         shader-variables (shader-variables shader shader-inputs)
-         attrs (select-attributes shader-variables)
-         attr-buffers (repeatedly (count attrs) #(arraybuffer))
-
-         attr-init (attribute-input attrs attr-buffers)
-
-         buffer-data (map #(->path (conj path (dissoc % :shader))) attrs)
-         buffer-init (buffer-init attr-buffers buffer-data)
-
-
-         ;; map attributes to buffers
-         attrs->buffers (into
-                          {}
-                          (map #(vector (assoc % :shader sid)
-                                        (arraybuffer))
-                               attrs))
-         ;; map shader inputs to resources
-         inputs (merge
-                  (into {}
-                        ;; uniforms map to themselves
-                        ;; need to identify them as attached to shader
-                        (map
-                          (fn [x]
-                            [(assoc x :shader sid) (assoc x :shader sid)])
-                          (:inputs shader)))
-                  attrs->buffers)
-         ]
-     ;; produce instructions for binding
-     (concat
-       ;; attributes bind to buffers
-       (map (fn [[a b]] [:bind-attribute a b]) attrs->buffers)
-       (map
-         ;; bind uniforms and buffers to data locations
-         (fn [[k v]]
-           (let [k2 (inputs (assoc k :shader sid))]
-             ;; look up input in resource map, bind resource to data
-             [(if (= :variable (:tag k2)) :bind-uniform :bind-arraybuffer)
-              k2
-              v]))
-         ;; data locations for inputs
-         (map (fn [x] [x [:get-in :env (->path (conj path x))]])
-              shader-inputs))))))
-
-
-
-
-
-
 (defn draw-arrays [path fb]
   [[:bind-framebuffer fb]
    [:draw-arrays
