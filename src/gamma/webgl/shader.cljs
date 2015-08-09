@@ -3,7 +3,8 @@
             [goog.webgl :as ggl]
     ;[gamma-driver.impl.resource :as resource]
             [gamma.webgl.uniform :as uniform]
-            [gamma.webgl.attribute :as attribute]))
+            [gamma.webgl.attribute :as attribute]
+            [gamma.program :as p]))
 
 
 
@@ -111,6 +112,13 @@
     [:createShader :gl [:value {:tag :literal :value shader}]]]
    (map #(init-variable-location shader %)
         (:inputs shader))])
+
+
+(defn compile [x]
+  (assoc
+    (Shader.
+      (p/program x))
+    :tag :shader))
 
 (comment
   {:tag :shader :id :x :inputs [{:tag :attribute :shader id}]}

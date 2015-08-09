@@ -1,6 +1,7 @@
 (ns gamma.webgl.attribute
   (:require [gamma.webgl.api :as p]
-            [goog.webgl :as ggl]))
+            [goog.webgl :as ggl]
+            [gamma.webgl.constants :as c]))
 
 
 
@@ -8,13 +9,13 @@
   {:normalized? false
    :size ({:float 1 :vec2 2 :vec3 3 :vec4 4}
            (:type attribute))
-   :type ggl/FLOAT
+   :type ::c/float
    :offset 0
    :stride 0})
 
 (defn bind-attribute [buffer layout location]
   (let [{:keys [size type normalized? stride offset]} layout]
-    [[:bindBuffer :gl ggl/ARRAY_BUFFER buffer]
+    [[:bindBuffer :gl ::c/array-buffer buffer]
     [:vertexAttribPointer :gl
      location
      size

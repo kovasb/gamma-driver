@@ -21,25 +21,6 @@
     :mat4 [:uniformMatrix4fv location false data ]
     nil))
 
-(comment
-  (defrecord Uniform [context program variable location]
-   p/IVariable
-   (location [this] location)
-   p/IInput
-   (input! [this data]
-     ;; inputfn could be statically set at init time
-     (uniform-input (p/gl context) (:type variable) location data))))
-
-(comment
-  (defn uniform [context program variable]
-   (Uniform.
-     context
-     program
-     variable
-     (.getUniformLocation
-       (p/gl context)
-       (p/program program)
-       (:name variable)))))
 
 
 

@@ -6,7 +6,8 @@
     [gamma.webgl.arraybuffer :as ab]
     [gamma.webgl.framebuffer :as fb]
     [gamma.webgl.draw :as draw]
-    [gamma.webgl.shader :as shader]))
+    [gamma.webgl.shader :as shader]
+    [gamma.webgl.constants :as c]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,7 +32,7 @@
    (fn [x] [:useProgram :gl x])
 
    :draw-arrays
-   (fn [y z] (draw/draw-arrays ggl/TRIANGLES y z))
+   (fn [y z] (draw/draw-arrays ::c/triangles y z))
 
    })
 
@@ -62,4 +63,9 @@
     (set (filter map? (flatten ops)))))
 
 
+(comment
+  ;; init of compound structures
+  ;; can build a dag based on contained elements
+  ;; what about relational structures?
 
+  )

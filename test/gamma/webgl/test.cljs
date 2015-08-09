@@ -1,6 +1,7 @@
 (ns gamma.webgl.test
   (:require
     [clojure.browser.repl :as repl]
+
     ))
 
 (enable-console-print!)
@@ -14,6 +15,7 @@
       [goog.dom :as gdom]
       [goog.webgl :as ggl]
       [gamma.api :as g]
+      [gamma.program :as p]
       [gamma.program :as p]
 
       [gamma.webgl.shader :as shader]
@@ -127,6 +129,16 @@
 
   (comment
     )
+
+  (let [bl [-1 -1]
+        tr [1 1]
+        br [1 -1]
+        tl [-1 1]]
+    [bl br tl tr br tl])
+
+  (defn rect [left right bottom top]
+    [[left bottom] [right bottom] [left top]
+     [right top] [right bottom] [left top]])
 
   (run (example-shader2)
        {:data {pos-attribute {:tag :data :data (js/Float32Array. (clj->js [-1 -1 1 -1 -1 1 1 1 1 -1 -1 1]))}}

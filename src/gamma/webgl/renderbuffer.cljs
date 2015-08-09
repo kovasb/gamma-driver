@@ -1,32 +1,28 @@
 (ns gamma.webgl.renderbuffer
   (:require
     [gamma.webgl.api :as api]
-    [goog.webgl :as ggl]))
+    [goog.webgl :as ggl]
+    [gamma.webgl.constants :as c]))
 
 (defn attach-rb [rb attachment-point]
   [:framebufferRenderbuffer
-   ggl/FRAMEBUFFER
+   ::c/framebuffer
    attachment-point
-   ggl/RENDERBUFFER
+   ::c/renderbuffer
    rb])
 
 (defn create-rb [rb]
   [[:assign rb [:createRenderbuffer]]
-   [:bindRenderbuffer ggl/RENDERBUFFER rb]
+   [:bindRenderbuffer ::c/renderbuffer rb]
    [:renderbufferStorage
-    ggl/RENDERBUFFER
+    ::c/renderbuffer
     (:format rb)
     (:width rb)
     (:height rb)]])
 
 
 
-(def renderbuffer-formats
-  {:depth-component16 ggl/DEPTH_COMPONENT16
-   :rgba4 ggl/RGBA4
-   :rgb5-a1 ggl/RGB5_A1
-   :rgb565 ggl/RGB565
-   :stencil-index8 ggl/STENCIL_INDEX8})
+
 
 
 

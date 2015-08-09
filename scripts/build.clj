@@ -7,4 +7,4 @@
              {:output-dir "resources/public/js/out"
               :output-to "resources/public/js/main.js"
               :main 'gamma.webgl.test
-              :asset-path "http://localhost:9000/js/out"})
+              :asset-path "/js/out"})

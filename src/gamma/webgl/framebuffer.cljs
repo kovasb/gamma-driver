@@ -1,16 +1,29 @@
 (ns gamma.webgl.framebuffer
   (:require [goog.webgl :as ggl]
-            [gamma.webgl.api :as api]))
+            [gamma.webgl.api :as api]
+            [gamma.webgl.constants :as c]))
 
 
 (defn bind-fb [fb]
-  [:bindFramebuffer :gl ggl/FRAMEBUFFER fb])
+  [:bindFramebuffer :gl ::c/framebuffer fb])
 
 (defn create-fb [fb]
   [[:assign fb [:createFramebuffer :gl]]
    (bind-fb fb)])
 
-(defn attach [fb])
+(defn attach [fb attachments]
+  ;; iterate thru attachments and call appropriate attachment fn
+  (map (fn [[k v]]
+         (condp = :tag
+           :texture2d
+           :renderbuffer
+           )
+         )
+       attachments)
+  )
+
+
+
 
 (comment
   (frame-buffer {:height x :width y}
@@ -26,10 +39,7 @@
      (.bindFramebuffer gl ggl/FRAMEBUFFER fb)
      (reduce-kv
        (fn [_ k v]
-         (api/attach v ({:color0        ggl/COLOR_ATTACHMENT0
-                         :depth         ggl/DEPTH_ATTACHMENT
-                         :stencil       ggl/STENCIL_ATTACHMENT
-                         :depth-stencil ggl/DEPTH_STENCIL_ATTACHMENT}
+         (api/attach v (
                          k)))
        nil
        attachments)

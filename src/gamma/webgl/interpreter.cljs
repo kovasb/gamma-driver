@@ -1,6 +1,7 @@
 (ns gamma.webgl.interpreter
   (:require [gamma.webgl.instructions.core :as i]
-            [gamma.webgl.shader]))
+            [gamma.webgl.shader]
+            [gamma.webgl.constants :as c]))
 
 (defprotocol IEval (-eval [this instruction]))
 
@@ -32,11 +33,11 @@
    :bindFramebuffer i/bindFramebuffer})
 
 (defn interpreter [init]
-  (let [s (atom (merge (intrinsics) init))]
+  (let [s (atom (merge (intrinsics) c/constants init))]
     (swap! s assoc
            :assign (fn [k v] (swap! s assoc k v))
            :get-in (fn [x y] (let [r (get-in (x) (:path y))]
-                               (println [(:path y) r])
+                               ;(println [(:path y) r])
                                 r))
            :env (fn [] @s))
     (Interpreter. s)))
