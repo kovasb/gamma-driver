@@ -1,7 +1,7 @@
-(ns gamma.webgl.texture
+(ns gamma.webgl.compiler.texture
   (:require [goog.webgl :as ggl]
             [gamma.webgl.api :as api]
-            [gamma.webgl.constants :as c]))
+            [gamma.webgl.platform.constants :as c]))
 
 ;; parts of creating texture
 ;; internal texture specification
@@ -13,7 +13,7 @@
   [[:activeTexture :gl id]
    [:uniformli :gl location id]])
 
-(defn texture-unpack [gl spec]
+(defn texture-unpack [spec]
   (let [{:keys [flip-y]} spec]
     (if (not (nil? flip-y))
       [:pixelStorei
@@ -53,15 +53,14 @@
 
 
 (defn texture-image-2d [context texture spec  texture-unit]
-  (let [gl (api/gl context)
-        target :c/texture-2d
+  (let [target :c/texture-2d
         {:keys [format-type width height unpack filter wrap faces]} spec
         ;spec (assoc spec :target target)
         [format type] format-type
         format (or format :c/rgba)
         type (or type :c/unsigned-byte)]
 
-    [(texture-unpack gl unpack)
+    [(texture-unpack unpack)
      [:activeTexture :gl (:id texture-unit)]
      [:bindTexture :gl target texture]
      (texture-wrap target wrap)

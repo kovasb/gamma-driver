@@ -1,7 +1,7 @@
 (ns gamma.webgl.interpreter
-  (:require [gamma.webgl.instructions.core :as i]
+  (:require [gamma.webgl.platform.core :as i]
             [gamma.webgl.shader]
-            [gamma.webgl.constants :as c]))
+            [gamma.webgl.platform.constants :as c]))
 
 (defprotocol IEval (-eval [this instruction]))
 

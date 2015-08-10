@@ -2,9 +2,9 @@
     (:require
     [gamma.api :as g]
     [gamma.program :as p]
-    [gamma.webgl.routines.symbolic :as r]
+    [gamma.webgl.routines.basic :as r]
     [gamma.webgl.shader :as shader]
-    [gamma.webgl.driver :as driver]
+    [gamma.webgl.drivers.basic :as driver]
     [clojure.walk :as walk]))
 
 (def x (g/varying "x" :float :mediump))

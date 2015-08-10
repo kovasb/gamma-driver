@@ -1,37 +1,35 @@
-(ns gamma.webgl.operations
+(ns gamma.webgl.compiler.core
   (:require
     [goog.webgl :as ggl]
     [clojure.walk]
-    [gamma.webgl.attribute :as attr]
-    [gamma.webgl.arraybuffer :as ab]
-    [gamma.webgl.framebuffer :as fb]
-    [gamma.webgl.draw :as draw]
+    [gamma.webgl.api :as gd]
+    [gamma.webgl.compiler.attribute :as attr]
+    [gamma.webgl.compiler.arraybuffer :as ab]
+    [gamma.webgl.compiler.framebuffer :as fb]
+    [gamma.webgl.compiler.draw :as draw]
     [gamma.webgl.shader :as shader]
-    [gamma.webgl.constants :as c]))
+    [gamma.webgl.platform.constants :as c]))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(def rewrites
-  {:bind-attribute
+(def loop-rules
+  {::gd/bind-attribute
    (fn [t o]
      (attr/bind-attribute
        o
        (attr/default-layout t)
        {:tag :location :variable t}))
 
-   :bind-arraybuffer
+   ::gd/bind-arraybuffer
    (fn [t o] (ab/arraybuffer-input t o))
 
-   :bind-framebuffer
+   ::gd/bind-framebuffer
    (fn [x]
      (fb/bind-fb nil))
 
-   :current-shader
+   ::gd/current-shader
    (fn [x] [:useProgram :gl x])
 
-   :draw-arrays
+   ::gd/draw-arrays
    (fn [y z] (draw/draw-arrays ::c/triangles y z))
 
    })
@@ -39,28 +37,33 @@
 (defn rewrite-fn [x]
   (if (not (vector? x))
     x
-    (if-let [rw (rewrites (first x))]
+    (if-let [rw (loop-rules (first x))]
       (apply rw (rest x))
       x)))
 
-(defn rewrite [x]
+(defn compile-loop [ops]
   (clojure.walk/postwalk
     rewrite-fn
-    x))
-
+    ops))
 
 
 (def init-rules
-  {:arraybuffer ab/create-array-buffer
-   :shader shader/init-shader})
+  {::gd/arraybuffer ab/create-array-buffer
+   ::gd/shader shader/init-shader})
 
 
-(defn initialization [ops]
+(defn compile-init [ops]
   (keep
     (fn [x]
       (if-let [r (init-rules (:tag x))]
         (r x)))
     (set (filter map? (flatten ops)))))
+
+
+(defn compile [ops]
+  {:init (compile-init ops)
+   :loop (compile-loop ops)})
+
 
 
 (comment

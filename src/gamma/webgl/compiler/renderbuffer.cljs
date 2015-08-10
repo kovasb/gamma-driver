@@ -1,8 +1,8 @@
-(ns gamma.webgl.renderbuffer
+(ns gamma.webgl.compiler.renderbuffer
   (:require
     [gamma.webgl.api :as api]
     [goog.webgl :as ggl]
-    [gamma.webgl.constants :as c]))
+    [gamma.webgl.platform.constants :as c]))
 
 (defn attach-rb [rb attachment-point]
   [:framebufferRenderbuffer

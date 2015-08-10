@@ -1,4 +1,4 @@
-(ns gamma.webgl.draw
+(ns gamma.webgl.compiler.draw
   (:require
     [gamma.webgl.api :as p]))
 

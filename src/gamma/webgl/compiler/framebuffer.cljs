@@ -1,7 +1,7 @@
-(ns gamma.webgl.framebuffer
+(ns gamma.webgl.compiler.framebuffer
   (:require [goog.webgl :as ggl]
             [gamma.webgl.api :as api]
-            [gamma.webgl.constants :as c]))
+            [gamma.webgl.platform.constants :as c]))
 
 
 (defn bind-fb [fb]

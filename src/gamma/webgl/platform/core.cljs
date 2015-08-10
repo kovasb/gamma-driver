@@ -1,4 +1,4 @@
-(ns gamma.webgl.instructions.core)
+(ns gamma.webgl.platform.core)
 
 
 

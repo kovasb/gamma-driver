@@ -1,8 +1,8 @@
-(ns gamma.webgl.arraybuffer
+(ns gamma.webgl.compiler.arraybuffer
   (:require [gamma.webgl.api :as api]
-            [gamma.webgl.attribute :as attr]
+            [gamma.webgl.compiler.attribute :as attr]
             [goog.webgl :as ggl]
-            [gamma.webgl.constants :as c]))
+            [gamma.webgl.platform.constants :as c]))
 
 (defn bind-ab [x]
   [:bindBuffer :gl ::c/array-buffer x])

@@ -1,4 +1,4 @@
-(ns gamma.webgl.constants)
+(ns gamma.webgl.platform.constants)
 
 ;; adapted from https://github.com/thi-ng/geom/blob/1f447bc3b9e0841e7719d85a36b946df055c54e0/geom-webgl/src/core.org
 

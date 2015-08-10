@@ -3,8 +3,8 @@
     [cljs.pprint :as pprint]
     [gamma.api :as g]
     [gamma.webgl.shader :as shader]
-    [gamma.webgl.routines.symbolic :as r]
-    [gamma.webgl.driver :as driver]))
+    [gamma.webgl.routines.basic :as r]
+    [gamma.webgl.drivers.basic :as driver]))
 
 ;; Shader definition
 (def pos (g/attribute "posAttr" :vec2))

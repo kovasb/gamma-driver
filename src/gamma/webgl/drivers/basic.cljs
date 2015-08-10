@@ -1,12 +1,12 @@
-(ns gamma.webgl.driver
+(ns gamma.webgl.drivers.basic
   (:require
     [gamma.webgl.interpreter :as itr]
-    [gamma.webgl.operations :as ops]))
+    [gamma.webgl.compiler.core :as compiler]))
 
 (defn driver [state ops]
   {:ops ops
-   :init (mapcat identity (ops/initialization ops))
-   :loop (ops/rewrite ops)
+   :init (mapcat identity (compiler/compile-init ops))
+   :loop (compiler/compile-loop ops)
    :init? (atom false)
    :interpreter (itr/interpreter state)})
 

@@ -1,7 +1,7 @@
-(ns gamma.webgl.attribute
+(ns gamma.webgl.compiler.attribute
   (:require [gamma.webgl.api :as p]
             [goog.webgl :as ggl]
-            [gamma.webgl.constants :as c]))
+            [gamma.webgl.platform.constants :as c]))
 
 
 

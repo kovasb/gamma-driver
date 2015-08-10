@@ -2,8 +2,8 @@
   (:require [gamma.webgl.api :as api]
             [goog.webgl :as ggl]
     ;[gamma-driver.impl.resource :as resource]
-            [gamma.webgl.uniform :as uniform]
-            [gamma.webgl.attribute :as attribute]
+            [gamma.webgl.compiler.uniform :as uniform]
+            [gamma.webgl.compiler.attribute :as attribute]
             [gamma.program :as p]))
 
 
@@ -118,42 +118,9 @@
   (assoc
     (Shader.
       (p/program x))
-    :tag :shader))
-
-(comment
-  {:tag :shader :id :x :inputs [{:tag :attribute :shader id}]}
-
-  )
-
-(comment
-  (defn variable->input [context shader v]
-   (cond
-     (= :attribute (:storage v))
-     (attribute/attribute context shader v)
-     (= :uniform (:storage v))
-     (uniform/uniform context shader v)))
-
-  (defrecord Shader [context program inputs]
-    api/IProgram
-    (program [this] program)
-    (inputs [this]
-      (reduce
-        (fn [init v]
-          (assoc init v (variable->input context this v)))
-        {}
-        inputs)))
-
-  (defn shader [context program-source]
-    (let [p (install-shader (api/gl context) program-source)]
-      (Shader. context (:program p) (:inputs p))))
+    :tag :gamma.webgl.api/shader))
 
 
-  (defrecord CurrentShader [context]
-    api/IInput
-    (input! [this data] (.useProgram (api/gl context) (api/program data))))
-
-  (defn current-shader [context] (CurrentShader. context))
-  )
 
 
 
