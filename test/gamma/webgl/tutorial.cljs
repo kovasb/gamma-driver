@@ -11,9 +11,10 @@
 (def pos (g/attribute "posAttr" :vec2))
 
 (defn example-shader []
-  {:id              :hello-triangle
-   :vertex-shader   {(g/gl-position) (g/vec4 pos 0 1)}
-   :fragment-shader {(g/gl-frag-color) (g/vec4 1 0 0 1)}})
+  (shader/compile
+    {:id              :hello-triangle
+     :vertex-shader   {(g/gl-position) (g/vec4 pos 0 1)}
+     :fragment-shader {(g/gl-frag-color) (g/vec4 1 0 0 1)}}))
 
 ;; Helpers
 (defn get-context [id]
@@ -30,7 +31,9 @@
 
 (comment
 
-  (def ops
+  ;; fundamental thing is a sequence of commands
+
+  (def commands
     (let [shader (shader/compile (example-shader))
          ab (gd/arraybuffer)
          attribute (assoc pos :shader (:id shader))
@@ -43,76 +46,43 @@
       (gd/bind-framebuffer nil)
       (gd/draw-arrays start count)]))
 
-  (gamma.webgl.compiler.core/compile ops)
+
+
+  ;; driver takes commmands, compiles them, and sets up the context
 
   (def driver
+    commands
     (driver/driver
-      {:gl (get-context "gl-canvas")}
-      ops))
+      {:gl (get-context "gl-canvas")}))
+
+  ;; execute the commands --> call into webgl, see something on screen
 
   (driver/exec! driver {})
 
+  ;; compile separates out init (run once) vs loop (run many times)
+  ;; (not a user api but helpful to understand)
+
+  (def compiled (gamma.webgl.compiler.core/compile commands))
+
+  (:init compiled)
+
+  (:loop compiled)
+
+
+  
   ;; routines abstract over ops
 
-  (def routine (r/shader-draw (shader/compile (example-shader))))
 
-  (r/query routine)
-
-  (def ops
-    (r/ops routine {:draw   {:start 0 :count 3}
-                    :shader {pos (->float32 [0 0 0 1 1 0])}}))
-  
-  (def driver
-    (driver/driver
-      {:gl (get-context "gl-canvas")}
-      ops))
-
-  (driver/exec! driver {})
-
-  ;; plug runtime variables into routines
-
-  ;; want something conceptually similar the below
-  ;; where we look up the values in an environment at runtime
-  (r/ops routine {:draw   {:start 'start :count 'count}
-                  :shader {pos 'pos-data}})
-
-
-  (defn pathify [path spec]
-    (cond
-      (vector? spec)
-      (into {} (map
-                 (fn [v]
-                   (if (map? v)
-                     (let [k (ffirst v)]
-                       [k (pathify (conj path k) (last (first v)))])
-                     [v [:get-in :env {:tag :path :path (conj path v)}]]))
-                 spec))
-
-      (set? spec)
-      (into {} (map
-                 (fn [v]
-                   [v [:get-in :env {:tag :path :path (conj path v)}]])
-                 spec))))
-
-  (pathify [:root] (r/query routine))
-
-  (def ops2 (r/ops routine (pathify [:root] (r/query routine))))
-
-  ops2
-
-  (def driver
-    (driver/driver
-      {:gl (get-context "gl-canvas")}
-      ops2))
-
-  (driver/exec! driver {:draw {:start 0 :count 3}
-                        :shader {pos (->float32 [0 0 1 0 0 1])}})
-
-
-
-
-
-
+  (let [r (r/shader-draw (example-shader))
+        driver (driver/driver
+                 (:commands r)
+                 {:gl (get-context "gl-canvas")})]
+    (driver/exec!
+      driver
+      (driver/assoc-inputs
+        (:inputs r)
+        {:shader {pos (->float32 [0 0 1 0 0 1])}
+         :draw {:start 0 :count 3}})))
 
 
   )

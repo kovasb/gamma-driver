@@ -7,6 +7,9 @@
 (defn arraybuffer []
   {:tag ::arraybuffer :id (nid)})
 
+(defn input []
+  {:tag ::input :id (nid)})
+
 
 (defn bind-attribute [attr buffer]
   [::bind-attribute attr buffer])

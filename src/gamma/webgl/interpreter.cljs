@@ -21,16 +21,16 @@
 
 
 (defn intrinsics []
-  {:bindBuffer i/bindBuffer
-   :bufferData i/bufferData
-   :createBuffer i/createBuffer
-   :vertexAttribPointer i/vertexAttribPointer
+  {:bindBuffer              i/bindBuffer
+   :bufferData              i/bufferData
+   :createBuffer            i/createBuffer
+   :vertexAttribPointer     i/vertexAttribPointer
    :enableVertexAttribArray i/enableVertexAttribArray
-   :getAttribLocation i/getAttribLocation
-   :drawArrays i/drawArrays
-   :drawElements i/drawElements
-   :createShader gamma.webgl.shader/install-shader
-   :bindFramebuffer i/bindFramebuffer})
+   :getAttribLocation       i/getAttribLocation
+   :drawArrays              i/drawArrays
+   :drawElements            i/drawElements
+   :createShader            gamma.webgl.shader/install-shader
+   :bindFramebuffer         i/bindFramebuffer})
 
 (defn interpreter [init]
   (let [s (atom (merge (intrinsics) c/constants init))]
@@ -42,6 +42,8 @@
            :env (fn [] @s))
     (Interpreter. s)))
 
+(comment
+  [:get-in :env {:tag :path :path [:root :draw :count]}])
 
 (defn eval* [init instructions]
   (let [s (atom init)

@@ -26,11 +26,8 @@
 
 ;; Draw
 (comment
-  (let [ops (r/draw [:root]
-                   (shader/compile (example-shader)))
-       driver (driver/driver
-                {:gl (get-context "gl-canvas")}
-                ops)]
+  (let [ops (r/draw [:root] (shader/compile (example-shader)))
+        driver (driver/driver {:gl (get-context "gl-canvas")} ops)]
    (driver/exec!
      driver
      {:hello-triangle {pos
