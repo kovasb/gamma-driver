@@ -9,4 +9,8 @@
 (defn draw-elements [mode first count offset]
   [[:drawElements :gl mode first count offset]])
 
+(defn draw-arrays-instanced [mode first count]
+  [[:drawArraysInstanced :gl mode first count]])
+
+;; make extension visible in env
 

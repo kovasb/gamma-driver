@@ -2,78 +2,46 @@
   (:require [gamma.webgl.api :as gd]))
 
 
+(defn shader-init [shader supplied-inputs]
+  (let [inputs (into {} (map (fn [x] [x (gd/input)]) (:inputs shader)))]
+    {:inputs inputs
+     :commands
+             (let [assoc-sid (fn [x] (assoc x :shader (:id shader)))]
+               (for [[variable the-input] inputs]
+                 (cond
+                   (= :attribute (:storage variable))
+                   (let [ab (gd/arraybuffer)]
+                     [(gd/bind-attribute (assoc-sid variable) ab)
+                      (gd/bind-arraybuffer ab the-input)])
 
-(defprotocol IRoutine
-  (query [this])
-  (ops [this data]))
+                   (and (= :sampler2D (:type variable)) (= :uniform (:storage variable)))
+                   (gd/bind-texture-uniform (assoc-sid variable) (supplied-inputs variable))
 
-(defrecord ShaderInit [shader supplied-inputs]
-  IRoutine
-  (query [this] (:inputs shader))
-  (ops [this data]
-    (let [assoc-sid (fn [x] (assoc x :shader (:id shader)))]
-      (for [input (:inputs shader)]
-        (cond
-          (= :attribute (:storage input))
-          (let [ab (gd/arraybuffer)]
-            [(gd/bind-attribute (assoc-sid input) ab)
-             (gd/bind-arraybuffer ab (data input))])
-
-          (and (= :sampler2D (:type input)) (= :uniform (:storage input)))
-          (gd/bind-texture-uniform (assoc-sid input) (supplied-inputs input))
-
-          (= :uniform (:storage input))
-          (gd/bind-uniform (assoc-sid input) (data input)))))))
+                   (= :uniform (:storage variable))
+                   (gd/bind-uniform (assoc-sid variable) the-input))))}))
 
 
-(defrecord DrawArrays [fb]
-  IRoutine
-  (query [this] [:start :count])
-  (ops [this data]
-    [(gd/bind-framebuffer fb)
-     (gd/draw-arrays
-       (:start data)
-       (:count data))]))
-
-
-
-
-
-(defrecord ShaderDraw [shader shader-init draw-arrays]
-  IRoutine
-  (query [this] [{:draw (query draw-arrays)}
-                 {:shader (query shader-init)}])
-  (ops [this data]
-    [(gd/current-shader shader)
-     (ops shader-init (:shader data))
-     (ops draw-arrays (:draw data))]))
+(defn draw-arrays [fb]
+  (let [start (gd/input)
+        count (gd/input)]
+    {:inputs {:start start :count count}
+     :commands
+             [(gd/bind-framebuffer fb)
+              (gd/draw-arrays start count)]}))
 
 
 (defn shader-draw [shader]
-  (ShaderDraw.
-    shader
-    (ShaderInit. shader nil)
-    (DrawArrays. nil)))
-
-
-(comment
-  (defn draw [path shader]
-   (concat
-     [(gd/current-shader shader)]
-     (shader-input (conj path (:id shader)) shader)
-     (draw-arrays (conj path :draw) nil))))
-
-(comment
-  {:shader (sf)
-   :draw (df)}
-
-  )
+  (let [shader-init (shader-init shader nil)
+        draw-arrays (draw-arrays nil)]
+    {:inputs {:shader (:inputs shader-init) :draw (:inputs draw-arrays)}
+     :commands
+             [(gd/current-shader shader)
+              (:commands shader-init)
+              (:commands draw-arrays)]}))
 
 
 
-
-
-;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn texture-init [texture-unit texture]
   [[texture-unit texture]])
