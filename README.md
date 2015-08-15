@@ -92,7 +92,7 @@ Drivers consume data-oriented command lists. This places minimal restrictions on
 
 The abstraction provided in GD abstracts over both the command list, and the inputs contained in the command list. 
 
-```
+```clojure
 (let [r (r/shader-draw (example-shader))
         driver (driver/driver
                  (:commands r)
