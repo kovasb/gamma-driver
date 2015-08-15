@@ -46,31 +46,47 @@
       (gd/bind-framebuffer nil)
       (gd/draw-arrays start count)]))
 
-
-
   ;; driver takes commmands, compiles them, and sets up the context
 
   (def driver
-    commands
     (driver/driver
+      commands
       {:gl (get-context "gl-canvas")}))
 
   ;; execute the commands --> call into webgl, see something on screen
 
   (driver/exec! driver {})
 
-  ;; compile separates out init (run once) vs loop (run many times)
-  ;; (not a user api but helpful to understand)
 
-  (def compiled (gamma.webgl.compiler.core/compile commands))
+  ;; we want variables (called inputs) in our commands
 
-  (:init compiled)
+  (def pos-input (gd/input))
+  (def start-input (gd/input))
+  (def count-input (gd/input))
 
-  (:loop compiled)
+  (def commands
+    (let [shader (shader/compile (example-shader))
+          ab (gd/arraybuffer)
+          attribute (assoc pos :shader (:id shader))]
+      [(gd/current-shader shader)
+       (gd/bind-attribute attribute ab)
+       (gd/bind-arraybuffer ab pos-input)
+       (gd/bind-framebuffer nil)
+       (gd/draw-arrays start-input count-input)]))
+
+  (def driver
+    (driver/driver
+      commands
+      {:gl (get-context "gl-canvas")}))
+
+  (driver/exec!
+    driver
+    {pos-input    (->float32 [0 0 0 1 1 0])
+     start-input 0
+     count-input 3})
 
 
-  
-  ;; routines abstract over ops
+  ;; routines abstract over commands and data input
 
 
   (let [r (r/shader-draw (example-shader))
@@ -82,7 +98,7 @@
       (driver/assoc-inputs
         (:inputs r)
         {:shader {pos (->float32 [0 0 1 0 0 1])}
-         :draw {:start 0 :count 3}})))
+         :draw   {:start 0 :count 3}})))
 
 
   )

@@ -8,16 +8,25 @@
 (defrecord Interpreter [state]
   IEval
   (-eval [this x]
-    (cond
-      (and (sequential? x) (sequential? (first x)))
-      (into [] (map #(-eval this %)) x)
+    (try
+      (cond
+       (and (sequential? x) (sequential? (first x)))
+       (into [] (map #(-eval this %)) x)
 
-      (sequential? x)
-      (let [y (into [] (map #(-eval this %)) x)]
-        (apply (first y) (rest y)))
+       (sequential? x)
+       (let [y (into [] (map #(-eval this %)) x)]
+         (if-let [f (first y)]
+           (if (keyword? f)
+             (if-let [m (aget (@state :gl) (name f))]
+               ;(.apply (aget gl "uniform3fv") gl #js [l #js [0 1 0]])
+               (.apply m (@state :gl) (clj->js (vec (drop 2 y))))
+               (println ("no gl method: " (name f))))
+             (apply (first y) (rest y)))
+           (println "no fn in invocation")))
 
-      :default
-      (if-let [y (@state x)] y x))))
+       :default
+       (if-let [y (@state x)] y x))
+      (catch js/Error e (println [x (.toString e)])))))
 
 
 (defn intrinsics []
@@ -27,6 +36,7 @@
    :vertexAttribPointer     i/vertexAttribPointer
    :enableVertexAttribArray i/enableVertexAttribArray
    :getAttribLocation       i/getAttribLocation
+   :getUniformLocation      i/getUniformLocation
    :drawArrays              i/drawArrays
    :drawElements            i/drawElements
    :createShader            gamma.webgl.shader/install-shader
@@ -35,6 +45,7 @@
 (defn interpreter [init]
   (let [s (atom (merge (intrinsics) c/constants init))]
     (swap! s assoc
+           :value (fn [x] (:value x))
            :assign (fn [k v] (swap! s assoc k v))
            :get-in (fn [x y] (let [r (get-in (x) (:path y))]
                                ;(println [(:path y) r])
