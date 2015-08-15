@@ -9,8 +9,7 @@
                ops)]
   (driver/exec!
     driver
-    {:hello-triangle {pos
-                      (->float32 [[1 0] [0 1] [1 -1]])}
+    {:hello-triangle {pos (->float32 [[1 0] [0 1] [1 -1]])}
      :draw           {:start 0 :count 3}}))
 
 

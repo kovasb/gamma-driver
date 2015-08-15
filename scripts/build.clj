@@ -1,10 +1,11 @@
-(require '[cljs.closure :as cljsc]
-         '[cljs.build.api])
+(require '[cljs.build.api :as b])
+(require '[cljs.repl :as repl])
+(require '[cljs.repl.browser :as browser])
 
-(cljsc/build (cljs.build.api/inputs
-               "src"
-               "test")
-             {:output-dir "resources/public/js/out"
-              :output-to "resources/public/js/main.js"
-              :main 'gamma.webgl.test
-              :asset-path "/js/out"})
+(b/build (b/inputs "src" "test")
+         {:main 'gamma.webgl.test
+          :asset-path "/js"
+          :output-to "resources/js/main.js"
+          :output-dir "resources/js"
+          :verbose true
+          :static-fns true})

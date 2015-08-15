@@ -17,6 +17,10 @@
 (defn getAttribLocation [a b c]
   (.getAttribLocation a b c))
 
+(defn getUniformLocation [a b c]
+  (.getUniformLocation a b c))
+
+
 (defn enableVertexAttribArray [a b]
   (.enableVertexAttribArray a b))
 

@@ -6,6 +6,7 @@
     [gamma.webgl.compiler.attribute :as attr]
     [gamma.webgl.compiler.arraybuffer :as ab]
     [gamma.webgl.compiler.framebuffer :as fb]
+    [gamma.webgl.compiler.uniform :as uniform]
     [gamma.webgl.compiler.draw :as draw]
     [gamma.webgl.shader :as shader]
     [gamma.webgl.platform.constants :as c]))
@@ -18,6 +19,10 @@
        o
        (attr/default-layout t)
        {:tag :location :variable t}))
+
+   ::gd/bind-uniform
+   (fn [t o]
+     (uniform/uniform-input (:type t) {:tag :location :variable t} o))
 
    ::gd/bind-arraybuffer
    (fn [t o] (ab/arraybuffer-input t o))
