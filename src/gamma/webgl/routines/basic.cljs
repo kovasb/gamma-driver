@@ -1,43 +1,100 @@
 (ns gamma.webgl.routines.basic
-  (:require [gamma.webgl.api :as gd]))
+  (:require [gamma.webgl.api :as gd]
+            [gamma.webgl.platform.constants :as c]))
+
+(defn variable-type [x]
+  (cond
+    (= :attribute (:storage x)) :attribute
+    (and (= :sampler2D (:type x)) (= :uniform (:storage x))) :texture-uniform
+    (= :uniform (:storage x)) :uniform))
+
+(defmulti init-variable
+          (fn [x params] (variable-type x)))
+
+(defn default-layout [attribute]
+  {:normalized? false
+   :size ({:float 1 :vec2 2 :vec3 3 :vec4 4}
+           (:type attribute))
+   :type ::c/float
+   :offset 0
+   :stride 0})
+
+(defn bind-attribute [attribute buffer]
+  (let [location {:tag :location :variable attribute}]
+    [(gd/vertexAttribPointer
+       buffer
+       (assoc (default-layout attribute) :index location))
+     (gd/enableVertexAttribArray {:index location})]))
+
+(defmethod init-variable :attribute [v x]
+  (let [ab (gd/arraybuffer)]
+    [(bind-attribute v ab)
+     (gd/bufferData ab {:data x :usage ::c/static-draw})]))
+
+(def uniform-op-map
+  {:bool :uniform1iv
+   :float :uniform1fv
+   :vec2 :uniform2fv
+   :vec3 :uniform3fv
+   :vec4 :uniform4fv})
+
+(defn uniform-input [type location data]
+  {:op (uniform-op-map type)
+   :args [:gl location data]})
+
+(defmethod init-variable :uniform [v x]
+  (uniform-input (:type v) {:tag :location :variable v} x))
+
+
+
+(comment
+  (defmethod init-variable :texture-uniform [x param]
+   (gd/bind-texture-uniform (assoc-sid variable) (supplied-inputs variable))))
 
 
 (defn shader-init [shader supplied-inputs]
   (let [inputs (into {} (map (fn [x] [x (gd/input)]) (:inputs shader)))]
     {:inputs inputs
      :commands
-             (let [assoc-sid (fn [x] (assoc x :shader (:id shader)))]
-               (for [[variable the-input] inputs]
-                 (cond
-                   (= :attribute (:storage variable))
-                   (let [ab (gd/arraybuffer)]
-                     [(gd/bind-attribute (assoc-sid variable) ab)
-                      (gd/bind-arraybuffer ab the-input)])
-
-                   (and (= :sampler2D (:type variable)) (= :uniform (:storage variable)))
-                   (gd/bind-texture-uniform (assoc-sid variable) (supplied-inputs variable))
-
-                   (= :uniform (:storage variable))
-                   (gd/bind-uniform (assoc-sid variable) the-input))))}))
+             (for [[variable the-input] inputs]
+               (init-variable
+                 (assoc variable :shader (:id shader))
+                 the-input))}))
 
 
-(defn draw-arrays [fb]
+(defn draw-arrays [shader fb]
   (let [start (gd/input)
         count (gd/input)]
-    {:inputs {:start start :count count}
-     :commands
-             [(gd/bind-framebuffer fb)
-              (gd/draw-arrays start count)]}))
+    {:inputs   {:start start :count count}
+     :commands [(gd/drawArrays shader fb {:mode ::c/triangles :first start :count count})]}))
 
 
 (defn shader-draw [shader]
   (let [shader-init (shader-init shader nil)
-        draw-arrays (draw-arrays nil)]
+        draw-arrays (draw-arrays shader nil)]
     {:inputs {:shader (:inputs shader-init) :draw (:inputs draw-arrays)}
      :commands
-             [(gd/current-shader shader)
-              (:commands shader-init)
+             [(:commands shader-init)
               (:commands draw-arrays)]}))
+
+(comment
+  [(gd/current-shader shader)
+  {:shader shader-init}
+  {:draw draw-arrays}])
+
+(comment
+  [:compare :this commands]
+
+  )
+
+(comment
+  {:count input :start input}
+
+  )
+
+
+
+
 
 
 
@@ -81,8 +138,20 @@
   [:bind-texture-uniform uniform texture-with-id]
   ;; least problems with this for now..
 
+  (texture-init {}
 
+    )
 
+  (def my-tex (texture-unit 0))
+
+  (textured
+    {my-tex :texture2d|spec}
+    {:content (shader-init shader {:textures {uni my-tex}})})
+
+  ;desirable to parameterize texture from runtime input, so we don't have to change code?
+  ;need to specify kind of texture, so we know what inputs to expect
+
+  {:textures {:foo data :bar data}}
 
   )
 

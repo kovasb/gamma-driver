@@ -5,7 +5,8 @@
     [gamma.webgl.shader :as shader]
     [gamma.webgl.routines.basic :as r]
     [gamma.webgl.drivers.basic :as driver]
-    [gamma.webgl.compiler.core]))
+    [gamma.webgl.compiler.core]
+    [gamma.webgl.platform.constants :as c]))
 
 
 (def pos (g/attribute "posAttr" :vec2))
@@ -31,20 +32,45 @@
 
 (comment
 
+
+  (defn bind-attribute [attribute buffer]
+    (let [location {:tag :location :variable attribute}]
+      [(gd/vertexAttribPointer
+         buffer
+         (assoc (default-layout attribute) :index location))
+       (gd/enableVertexAttribArray {:index location})]))
+
+  (defmethod init-variable :attribute [v x]
+    (let [ab (gd/arraybuffer)]
+      [(bind-attribute v ab)
+       (gd/bufferData ab {:data x :usage ::c/static-draw})]))
+
+
+
   ;; fundamental thing is a sequence of commands
 
+  (require '[gamma.webgl.platform.constants :as c])
+
   (def commands
-    (let [shader (shader/compile (example-shader))
+    (let [shader (example-shader)
          ab (gd/arraybuffer)
          attribute (assoc pos :shader (:id shader))
-         data (->float32 [0 0 0 1 1 0])
+         data (->float32 [0 0 0 1 -1 0])
          start 0
-         count 3]
-     [(gd/current-shader shader)
-      (gd/bind-attribute attribute ab)
-      (gd/bind-arraybuffer ab data)
-      (gd/bind-framebuffer nil)
-      (gd/draw-arrays start count)]))
+         count 3
+          location {:tag :location :variable attribute}]
+     [
+      (gd/vertexAttribPointer
+        ab
+        (assoc (r/default-layout attribute) :index location))
+      (gd/enableVertexAttribArray {:index location})
+      (gd/bufferData ab {:data data :usage ::c/static-draw})
+
+      (gd/drawArrays shader nil {:mode ::c/triangles :start start :count count})
+      ]))
+
+
+
 
   ;; driver takes commmands, compiles them, and sets up the context
 

@@ -13,17 +13,20 @@
    :offset 0
    :stride 0})
 
-(defn bind-attribute [buffer layout location]
-  (let [{:keys [size type normalized? stride offset]} layout]
-    [[:bindBuffer :gl ::c/array-buffer buffer]
-    [:vertexAttribPointer :gl
-     location
-     size
-     type
-     normalized?
-     stride
-     offset]
-    [:enableVertexAttribArray :gl location]]))
+
+
+(comment
+  (defn bind-attribute [buffer layout location]
+   (let [{:keys [size type normalized? stride offset]} layout]
+     [[:bindBuffer :gl ::c/array-buffer buffer]
+      [:vertexAttribPointer :gl
+       location
+       size
+       type
+       normalized?
+       stride
+       offset]
+      [:enableVertexAttribArray :gl location]])))
 
 (defn bind-attribute-instanced [buffer layout location divisor]
   [(bind-attribute buffer layout location)

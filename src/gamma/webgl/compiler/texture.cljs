@@ -13,67 +13,76 @@
   [[:activeTexture :gl id]
    [:uniformli :gl location id]])
 
-(defn texture-unpack [spec]
-  (let [{:keys [flip-y]} spec]
-    (if (not (nil? flip-y))
-      [:pixelStorei
-       :gl
-       :c/unpack-flip-y-webgl
-       flip-y])))
+(defn flip-y [val]
+  [:pixelStorei :gl ::c/unpack-flip-y-webgl val])
 
-(defn texture-wrap [target spec]
-  (let [{:keys [s t]} spec]
-    [(if s
-       [:texParameteri
-        :gl
-        target
-        :c/texture-wrap-s
-        s] [])
-     (if t
-       [:texParameteri
-        :gl
-        target
-        :c/texture-wrap-t
-        s] [])]))
+(defn wrap-s [target val]
+  [:texParameteri :gl target ::c/texture-wrap-s val])
 
-(defn texture-filter [target spec]
-  (let [{:keys [min mag]} spec]
-    [(if min
-       [:texParameteri
-        :gl
-        target
-        :c/texture-min-filter
-        min] [])
-     (if mag
-       [:texParameteri
-        :gl
-        target
-        :c/texture-mag-filter
-        mag] [])]))
+(defn wrap-t [target val]
+  [:texParameteri :gl target ::c/texture-wrap-t val])
+
+(defn min-filter [target val]
+  [:texParameteri :gl target ::c/texture-min-filter val])
+
+(defn mag-filter [target val]
+  [:texParameteri :gl target ::c/texture-mag-filter val])
+
+(defn texImage2D [target format type data]
+  [:texImage2D :gl target 0 format format type data])
+
+(defn textureImage2D-2 [target format width height type data]
+  [:texImage2D :gl target 0 format width height 0 format type data])
+
+(defn texture-image [spec]
+  (let [{:keys [target s t min mag format type data]} spec]
+    [(flip-y 1)
+     (wrap-s target s)
+     (wrap-t target t)
+     (min-filter target min)
+     (mag-filter target mag)
+     (texImage2D target format type data)]))
 
 
-(defn texture-image-2d [context texture spec  texture-unit]
-  (let [target :c/texture-2d
-        {:keys [format-type width height unpack filter wrap faces]} spec
-        ;spec (assoc spec :target target)
-        [format type] format-type
-        format (or format :c/rgba)
-        type (or type :c/unsigned-byte)]
+(comment
 
-    [(texture-unpack unpack)
-     [:activeTexture :gl (:id texture-unit)]
-     [:bindTexture :gl target texture]
-     (texture-wrap target wrap)
-     (texture-filter target filter)
-     [:texImage2D
-      :gl
-      target
-      0
-      format
-      format
-      type
-      (:data spec)]]))
+  ;; compiler
 
+  (defn get-inputs [input keys]
+    (map (into {} (fn [x] [x [:get input x]] keys))))
+
+  (texture-image (get-inputs input [:target :s :t :min :mag :format :type :data]))
+
+  [:bind-texture texture input]
+
+  (texture-image {:target [:get input :target]})
+
+  )
+
+
+(comment
+  (texture-image
+    {:target ::c/texture-2d
+     :format ::c/rgba
+     :type ::c/unsigned-byte
+     :s ::c/repeat
+     :t ::c/repeat
+     :min ::c/linear
+     :mag ::c/linear
+     :data (api/input)})
+
+
+  [:bind-texture uniform texture]
+  {:tag :texture2d :spec {:s :t}}
+  ;; can we designated input to have a certain type?
+
+
+  )
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn bind-fb-texture [tu texture]
   [[:activeTexture :gl tu]
@@ -88,6 +97,9 @@
    :c/texture-2d
    texture
    0])
+
+
+
 
 (defn framebuffer-texture2d [tex ctx opts]
   (let [target :c/texture-2d

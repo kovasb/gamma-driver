@@ -5,10 +5,9 @@
     [gamma.webgl.api :as gd]))
 
 (defn driver [ops state]
-  {:ops ops
-   :init (mapcat identity (compiler/compile-init ops))
-   :loop (compiler/compile-loop ops)
-   :init? (atom false)
+  {:ops         ops
+   :init        (compiler/compile-init ops)
+   :init?       (atom false)
    :interpreter (itr/interpreter state)})
 
 (defn exec! [driver data]
@@ -17,12 +16,12 @@
   (when (not @(:init? driver))
     (itr/-eval (:interpreter driver) (:init driver))
     (reset! (:init? driver) true))
-  (itr/-eval (:interpreter driver) (:loop driver)))
+  (itr/-eval (:interpreter driver) (:ops driver)))
 
 
 (defn input? [x]
   (if (map? x)
-    (= (:tag x) ::gd/input)))
+    (= (:tag x) :input)))
 
 (defn assoc-inputs* [x y result]
   (if (input? x)

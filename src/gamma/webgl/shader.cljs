@@ -96,6 +96,16 @@
 
 
 (defn init-variable-location [shader variable]
+  {:op :assign
+   :args
+   [{:tag :location :variable (assoc variable :shader (:id shader))}
+    {:op (if (= :attribute (:storage variable))
+           :getAttribLocation
+           :getUniformLocation)
+     :args
+     [:gl shader (:name variable)]}]})
+
+(comment
   [:assign
    {:tag :location :variable (assoc variable :shader (:id shader))}
    [(if (= :attribute (:storage variable))
@@ -107,12 +117,19 @@
 
 
 (defn init-shader [shader]
-  [[:assign
-    shader
-    [:createShader :gl [:value {:tag :literal :value shader}]]]
+  [{:op :assign
+    :args [shader
+           {:op :createShader
+            :args [:gl {:op :value :args [{:tag :literal :value shader}]}]}]}
    (map #(init-variable-location shader %)
         (:inputs shader))])
 
+
+(comment
+  [[:assign
+    shader
+    [:createShader :gl [:value {:tag :literal :value shader}]]]
+   ])
 
 (defn compile [x]
   (assoc

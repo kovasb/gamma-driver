@@ -5,28 +5,52 @@
 
 (defprotocol IEval (-eval [this instruction]))
 
+(defn eval-binding [gl name val]
+  (case name
+    :arraybuffer (.bindBuffer gl (c/constants ::c/array-buffer) val)
+    :framebuffer (.bindFramebuffer gl (c/constants ::c/frame-buffer) val)
+    :program (.useProgram gl val)
+    (throw (js/Error (str "No binding operation matched for: " name)))))
+
+
+
+
+
+
+(defn eval-op [i x]
+  (let [state @(:state i)
+        args (-eval i (:args x))
+        op (:op x)
+        gl (state :gl)]
+
+    (reduce-kv
+      (fn [_ k v] (eval-binding gl k (state v)))
+      nil
+      (:bindings x))
+
+    (if-let [f (state op)]
+      (apply f args)
+      (if-let [m (aget gl (name op))]
+        (.apply m gl (clj->js (vec args)))
+        (throw (js/Error (str "No method found for: " op)))))))
+
+
 (defrecord Interpreter [state]
   IEval
   (-eval [this x]
     (try
       (cond
-       (and (sequential? x) (sequential? (first x)))
-       (into [] (map #(-eval this %)) x)
+        (and (map? x) (:op x))
+        (eval-op this x)
 
-       (sequential? x)
-       (let [y (into [] (map #(-eval this %)) x)]
-         (if-let [f (first y)]
-           (if (keyword? f)
-             (if-let [m (aget (@state :gl) (name f))]
-               ;(.apply (aget gl "uniform3fv") gl #js [l #js [0 1 0]])
-               (.apply m (@state :gl) (clj->js (vec (drop 2 y))))
-               (println ("no gl method: " (name f))))
-             (apply (first y) (rest y)))
-           (println "no fn in invocation")))
+        (sequential? x)
+        (into [] (map #(-eval this %) x))
 
-       :default
-       (if-let [y (@state x)] y x))
-      (catch js/Error e (println [x (.toString e)])))))
+        :default
+        (if-let [y (@state x)] y x))
+
+      (catch js/Error e
+        (throw (js/Error (str "Error evaluating " (pr-str x) ": " (pr-str e))))))))
 
 
 (defn intrinsics []
