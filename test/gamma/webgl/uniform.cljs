@@ -45,6 +45,55 @@
     driver))
 
 (comment
+
+  (main)
+
+  (def r (r/shader-draw (example-shader)))
+
+  (def d (driver/driver
+           (:commands r)
+           {:gl (get-context "gl-canvas")}))
+
+  (driver/exec!
+    d
+    (driver/assoc-inputs
+      (:inputs r)
+      {:shader {pos (->float32 [0 0 1 0 0 1])
+                color #js [1 1 0]}
+       :draw   {:start 0 :count 3}}))
+
+  (defn state-lookup [driver val]
+    (@(:state (:interpreter driver)) val))
+
+
+  (state-lookup d {:tag :input, :id 8})
+
+  (.uniform3fv
+    (state-lookup d :gl)
+    (state-lookup d {:tag :location, :variable
+                          {:tag :variable, :name "colorUniform", :type :vec3, :storage :uniform, :precision :mediump, :shader :uniform}})
+    (state-lookup d {:tag :input, :id 8}))
+
+  (def op {:op   :uniform3fv,
+    :args [:gl
+           {:tag      :location,
+            :variable {:tag       :variable,
+                       :name      "colorUniform",
+                       :type      :vec3,
+                       :storage   :uniform,
+                       :precision :mediump,
+                       :shader    :uniform}}
+           {:tag :input, :id 8}]})
+
+  (gamma.webgl.interpreter/eval-op (:interpreter d) op)
+
+  (if-let [m (aget gl (name op))]
+    (.apply m gl (clj->js (vec args)))
+    (throw (js/Error (str "No method found for: " op))))
+
+  (aget (state-lookup d :gl) (name :uniform3fv))
+
+
   (def gl (get-context "gl-canvas"))
 
   (:glsl (:vertex-shader (example-shader)))

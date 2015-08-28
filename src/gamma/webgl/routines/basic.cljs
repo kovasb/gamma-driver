@@ -45,16 +45,30 @@
 (defmethod init-variable :uniform [v x]
   (uniform-input (:type v) {:tag :location :variable v} x))
 
+(defmethod init-variable :texture-uniform [v x]
+  {:op :uniform1i
+   :bindings x
+   :args [:gl {:tag :location :variable v} (:texture-unit x)]})
 
 
 (comment
   (defmethod init-variable :texture-uniform [x param]
    (gd/bind-texture-uniform (assoc-sid variable) (supplied-inputs variable))))
 
+(comment
+  (shader-init shader {sampler {:texture-unit 1 :texture tex}})
 
-(defn shader-init [shader supplied-inputs]
-  (let [inputs (into {} (map (fn [x] [x (gd/input)]) (:inputs shader)))]
-    {:inputs inputs
+  )
+
+;; extend to pull textures in
+(defn shader-init [shader constants]
+  (let [constants (or constants {})
+        inputs (into {}
+                     (map
+                       (fn [x] [x
+                                (constants x (gd/input))])
+                       (:inputs shader)))]
+    {:inputs (into {} (filter #(not (constants (first %))) inputs))
      :commands
              (for [[variable the-input] inputs]
                (init-variable
@@ -69,8 +83,8 @@
      :commands [(gd/drawArrays shader fb {:mode ::c/triangles :first start :count count})]}))
 
 
-(defn shader-draw [shader]
-  (let [shader-init (shader-init shader nil)
+(defn shader-draw [shader x]
+  (let [shader-init (shader-init shader x)
         draw-arrays (draw-arrays shader nil)]
     {:inputs {:shader (:inputs shader-init) :draw (:inputs draw-arrays)}
      :commands

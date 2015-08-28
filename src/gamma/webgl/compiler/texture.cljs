@@ -1,6 +1,6 @@
 (ns gamma.webgl.compiler.texture
   (:require [goog.webgl :as ggl]
-            [gamma.webgl.api :as api]
+            [gamma.webgl.api :as gd]
             [gamma.webgl.platform.constants :as c]))
 
 ;; parts of creating texture
@@ -13,35 +13,58 @@
   [[:activeTexture :gl id]
    [:uniformli :gl location id]])
 
-(defn flip-y [val]
-  [:pixelStorei :gl ::c/unpack-flip-y-webgl val])
 
-(defn wrap-s [target val]
-  [:texParameteri :gl target ::c/texture-wrap-s val])
+(defn flip-y [t val]
+  (gd/op
+    :pixelStorei
+    t
+    [:gl ::c/unpack-flip-y-webgl val]))
 
-(defn wrap-t [target val]
-  [:texParameteri :gl target ::c/texture-wrap-t val])
 
-(defn min-filter [target val]
-  [:texParameteri :gl target ::c/texture-min-filter val])
+(defn wrap-s [t val]
+  (gd/op
+    :texParameteri
+    t
+    [:gl (:target (:texture t)) ::c/texture-wrap-s val]))
 
-(defn mag-filter [target val]
-  [:texParameteri :gl target ::c/texture-mag-filter val])
+(defn wrap-t [t val]
+  (gd/op
+    :texParameteri
+    t
+    [:gl (:target (:texture t)) ::c/texture-wrap-t val]))
 
-(defn texImage2D [target format type data]
-  [:texImage2D :gl target 0 format format type data])
+(defn min-filter [t val]
+  (gd/op
+    :texParameteri
+    t
+    [:gl (:target (:texture t)) ::c/texture-min-filter val]))
+
+(defn mag-filter [t val]
+  (gd/op
+    :texParameteri
+    t
+    [:gl (:target (:texture t)) ::c/texture-mag-filter val]))
+
+
+(defn texImage2D [t format type data]
+  (gd/op
+    :texImage2D
+    t
+    [:gl (:target (:texture t)) 0 format format type data]))
+
+
 
 (defn textureImage2D-2 [target format width height type data]
   [:texImage2D :gl target 0 format width height 0 format type data])
 
-(defn texture-image [spec]
-  (let [{:keys [target s t min mag format type data]} spec]
-    [(flip-y 1)
-     (wrap-s target s)
-     (wrap-t target t)
-     (min-filter target min)
-     (mag-filter target mag)
-     (texImage2D target format type data)]))
+(defn texture-image [tex spec]
+  (let [{:keys [s t min mag format type data]} spec]
+    [(flip-y tex 1)
+     (wrap-s tex s)
+     (wrap-t tex t)
+     (min-filter tex min)
+     (mag-filter tex mag)
+     (texImage2D tex format type data)]))
 
 
 (comment

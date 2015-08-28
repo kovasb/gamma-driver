@@ -22,8 +22,13 @@
   {:op :assign
    :args [ab {:op :createBuffer :args [:gl]}]})
 
+(defn create-texture [t]
+  {:op :assign
+   :args [t {:op :createTexture :args [:gl]}]})
+
 (def init-rules
   {:arraybuffer create-array-buffer
+   :texture create-texture
    ::gd/shader shader/init-shader})
 
 (defn collect-tagged [x]

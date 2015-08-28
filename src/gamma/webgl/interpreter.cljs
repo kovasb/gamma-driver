@@ -5,15 +5,30 @@
 
 (defprotocol IEval (-eval [this instruction]))
 
-(defn eval-binding [gl name val]
+(defn eval-binding [gl name spec val]
   (case name
+    :texture (.bindTexture gl (c/constants (:target spec)) val)
+    :texture-unit (.activeTexture gl (+ val (c/constants ::c/texture0)))
     :arraybuffer (.bindBuffer gl (c/constants ::c/array-buffer) val)
-    :framebuffer (.bindFramebuffer gl (c/constants ::c/frame-buffer) val)
+    :framebuffer (.bindFramebuffer gl (c/constants ::c/framebuffer) val)
     :program (.useProgram gl val)
     (throw (js/Error (str "No binding operation matched for: " name)))))
 
 
-
+(defn eval-bindings [gl state b]
+  (reduce
+    (fn [_ [k v]] (eval-binding gl k v (state v)))
+    nil
+    (sort-by
+      first
+      (fn [a b]
+        (cond
+          (and (= a :texture) (= b :texture-unit))
+          1
+          (and (= b :texture) (= a :texture-unit))
+          -1
+          :default (compare a b)))
+      b)))
 
 
 
@@ -23,15 +38,12 @@
         op (:op x)
         gl (state :gl)]
 
-    (reduce-kv
-      (fn [_ k v] (eval-binding gl k (state v)))
-      nil
-      (:bindings x))
+    (eval-bindings gl state (:bindings x))
 
     (if-let [f (state op)]
       (apply f args)
       (if-let [m (aget gl (name op))]
-        (.apply m gl (clj->js (vec args)))
+        (.apply m gl (clj->js (vec (rest args))))
         (throw (js/Error (str "No method found for: " op)))))))
 
 

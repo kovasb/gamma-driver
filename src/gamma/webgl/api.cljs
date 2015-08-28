@@ -8,9 +8,19 @@
 (defn arraybuffer []
   {:tag :arraybuffer :id (nid)})
 
+(defn texture []
+  {:tag :texture :id (nid) :target ::c/texture-2d})
+
 (defn input []
   {:tag :input :id (nid)})
 
+(defn op
+  ([o args] (op nil args))
+  ([o bindings args]
+   (if bindings
+     {:op o :args args :bindings bindings}
+     {:op   o
+     :args args})))
 
 ;; Per-Fragment operations
 ;; Implicit parameters unknown
