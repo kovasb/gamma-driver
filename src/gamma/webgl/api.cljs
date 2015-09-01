@@ -11,6 +11,12 @@
 (defn texture []
   {:tag :texture :id (nid) :target ::c/texture-2d})
 
+(defn framebuffer []
+  {:tag :framebuffer :id (nid)})
+
+(defn renderbuffer []
+  {:tag :renderbuffer :id (nid)})
+
 (defn input []
   {:tag :input :id (nid)})
 
@@ -100,6 +106,22 @@
 
 ;(defn framebufferRenderbuffer [fb args])
 ;(defn framebufferTexture2D [fb args])
+
+(defn framebufferRenderbuffer [bindings {:keys [attachment renderbuffer]}]
+  {:op :framebufferRenderbuffer
+   :bindings bindings
+   :args [:gl ::c/framebuffer attachment ::c/renderbuffer renderbuffer]})
+
+(defn framebufferTexture2D [bindings {:keys [attachment texture]}]
+  {:op :framebufferTexture2D
+   :bindings bindings
+   :args [:gl ::c/framebuffer attachment (:target texture) texture 0]})
+
+(defn renderbufferStorage [bindings {:keys [internalformat width height]}]
+  {:op :renderbufferStorage
+   :bindings bindings
+   :args [:gl ::c/renderbuffer internalformat width height]})
+
 
 
 ;; Util

@@ -83,13 +83,16 @@
      :commands [(gd/drawArrays shader fb {:mode ::c/triangles :first start :count count})]}))
 
 
-(defn shader-draw [shader x]
-  (let [shader-init (shader-init shader x)
-        draw-arrays (draw-arrays shader nil)]
-    {:inputs {:shader (:inputs shader-init) :draw (:inputs draw-arrays)}
-     :commands
-             [(:commands shader-init)
-              (:commands draw-arrays)]}))
+(defn shader-draw
+  ([shader] (shader-draw nil nil))
+  ([shader x] (shader-draw x nil))
+  ([shader x fb]
+   (let [shader-init (shader-init shader x)
+         draw-arrays (draw-arrays shader fb)]
+     {:inputs {:shader (:inputs shader-init) :draw (:inputs draw-arrays)}
+      :commands
+              [(:commands shader-init)
+               (:commands draw-arrays)]})))
 
 (comment
   [(gd/current-shader shader)

@@ -4,25 +4,31 @@
             [gamma.webgl.platform.constants :as c]))
 
 
-(defn bind-fb [fb]
-  [:bindFramebuffer :gl ::c/framebuffer fb])
 
-(defn create-fb [fb]
-  [[:assign fb [:createFramebuffer :gl]]
-   (bind-fb fb)])
 
-(defn attach [fb attachments]
-  ;; iterate thru attachments and call appropriate attachment fn
-  (map (fn [[k v]]
-         (condp = :tag
-           :texture2d
-           :renderbuffer
-           )
-         )
-       attachments)
+
+(comment
+
+
+  (let [fb (framebuffer)
+        tex (texture)
+        s1 XX
+        s2 XX]
+    (init-framebuffer)
+    (drawArrays {:framebuffer fb} {})
+    (init-shader s2 {sampler tex})
+    (drawArrays {} {}))
+
+
+  (framebufferRenderbuffer
+    {:framebuffer fb}
+    {:attachment a :renderbuffer r})
+
+  (framebufferTexture2D {:framebuffer fb} {:texture t :tex-target t :level l})
+
+
+
   )
-
-
 
 
 (comment
@@ -47,5 +53,28 @@
      (Framebuffer. ctx fb attachments))))
 
 
+(comment
+  (defn attach-renderbuffer [binding rb])
 
+
+
+
+  (defn attach-rb [rb attachment-point]
+    [:framebufferRenderbuffer
+     ::c/framebuffer
+     attachment-point
+     ::c/renderbuffer
+     rb])
+
+  (defn create-rb [rb]
+    [[:assign rb [:createRenderbuffer]]
+     [:bindRenderbuffer ::c/renderbuffer rb]
+     [:renderbufferStorage
+      ::c/renderbuffer
+      (:format rb)
+      (:width rb)
+      (:height rb)]])
+
+
+  )
 

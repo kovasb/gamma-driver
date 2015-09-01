@@ -26,8 +26,19 @@
   {:op :assign
    :args [t {:op :createTexture :args [:gl]}]})
 
+(defn create-framebuffer [x]
+  {:op :assign
+   :args [x {:op :createFramebuffer :args [:gl]}]})
+
+(defn create-renderbuffer [x]
+  {:op :assign
+   :args [x {:op :createRenderbuffer :args [:gl]}]})
+
+
 (def init-rules
   {:arraybuffer create-array-buffer
+   :framebuffer create-framebuffer
+   :renderbuffer create-renderbuffer
    :texture create-texture
    ::gd/shader shader/init-shader})
 

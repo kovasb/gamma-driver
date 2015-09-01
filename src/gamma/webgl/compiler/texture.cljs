@@ -52,6 +52,15 @@
     t
     [:gl (:target (:texture t)) 0 format format type data]))
 
+(defn texImage2D-2 [t {:keys [format type width height pixels]}]
+  (gd/op
+    :texImage2D
+    t
+    [:gl (:target (:texture t)) 0 format width height 0 format type pixels]))
+
+;; texImage
+;; texPixels
+
 
 
 (defn textureImage2D-2 [target format width height type data]

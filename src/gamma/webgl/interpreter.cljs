@@ -11,6 +11,7 @@
     :texture-unit (.activeTexture gl (+ val (c/constants ::c/texture0)))
     :arraybuffer (.bindBuffer gl (c/constants ::c/array-buffer) val)
     :framebuffer (.bindFramebuffer gl (c/constants ::c/framebuffer) val)
+    :renderbuffer (.bindRenderbuffer gl (c/constants ::c/renderbuffer) val)
     :program (.useProgram gl val)
     (throw (js/Error (str "No binding operation matched for: " name)))))
 
