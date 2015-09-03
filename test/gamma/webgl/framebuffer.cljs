@@ -107,8 +107,6 @@
            commands
            {:gl (get-context "gl-canvas")}))
 
-  {:stage1 (:inputs shader-draw1)
-   :stage2 (:inputs shader-draw2)}
 
   (driver/exec!
     d

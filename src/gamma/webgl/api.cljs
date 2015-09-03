@@ -8,6 +8,9 @@
 (defn arraybuffer []
   {:tag :arraybuffer :id (nid)})
 
+(defn element-arraybuffer []
+  {:tag :element-arraybuffer :id (nid)})
+
 (defn texture []
   {:tag :texture :id (nid) :target ::c/texture-2d})
 
@@ -73,6 +76,16 @@
    :bindings {:arraybuffer buffer}
    :args     [:gl index size type normalized? stride offset]})
 
+(defn vertexAttribDivisorANGLE [buffer {:keys [index count]}]
+  {:op :vertexAttribDivisorANGLE
+   :bindings {:arraybuffer buffer}
+   :args [{:tag :extension :extension "ANGLE_instanced_arrays"} index count]})
+
+(defn drawArraysInstancedANGLE [program framebuffer {:keys [mode first count primcount]}]
+  {:op :drawArraysInstancedANGLE
+   :bindings {:program program :framebuffer framebuffer}
+   :args [{:tag :extension :extension "ANGLE_instanced_arrays"} mode first count primcount]})
+
 
 ;; Texture Objects
 
@@ -86,7 +99,12 @@
    :args     [:gl mode first count]})
 
 
-;(defn drawElements [program framebuffer elements args])
+(defn drawElements [{:keys [program framebuffer element-arraybuffer]}
+                    {:keys [mode count type offset]}]
+  {:op :drawElements
+   :bindings {:program program :framebuffer framebuffer :element-arraybuffer element-arraybuffer}
+   :args [:gl mode count type offset]})
+
 
 ;; Special Functions
 

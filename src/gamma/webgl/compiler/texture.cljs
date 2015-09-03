@@ -101,7 +101,10 @@
      :t ::c/repeat
      :min ::c/linear
      :mag ::c/linear
-     :data (api/input)})
+     :data (api/input)}
+
+
+    )
 
 
   [:bind-texture uniform texture]

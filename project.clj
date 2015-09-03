@@ -5,7 +5,8 @@
   :dependencies [[org.clojure/clojure "1.7.0-beta2"]
                  [org.clojure/clojurescript "0.0-3292"]
                  [quile/component-cljs "0.2.4"]
-                 [kovasb/gamma "0.0-135-10-gfcaf"]
+                 [kovasb/gamma "0.0-135-12-g26a6**DIRTY**"]
+                 [thi.ng/geom "0.0.881"]
                  ]
   :plugins [[org.clojars.cvillecsteele/lein-git-version "1.0.0"]]
   :source-paths ["src"])

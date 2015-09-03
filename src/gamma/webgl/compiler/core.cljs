@@ -35,11 +35,17 @@
    :args [x {:op :createRenderbuffer :args [:gl]}]})
 
 
+(defn create-extension [x]
+  {:op :assign
+   :args [x {:op :getExtension :args [:gl (:extension x)]}]})
+
 (def init-rules
   {:arraybuffer create-array-buffer
+   :element-arraybuffer create-array-buffer
    :framebuffer create-framebuffer
    :renderbuffer create-renderbuffer
    :texture create-texture
+   :extension create-extension
    ::gd/shader shader/init-shader})
 
 (defn collect-tagged [x]

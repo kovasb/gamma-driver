@@ -8,8 +8,9 @@
 (defn eval-binding [gl name spec val]
   (case name
     :texture (.bindTexture gl (c/constants (:target spec)) val)
-    :texture-unit (.activeTexture gl (+ val (c/constants ::c/texture0)))
+    :texture-unit (.activeTexture gl (+ spec (c/constants ::c/texture0)))
     :arraybuffer (.bindBuffer gl (c/constants ::c/array-buffer) val)
+    :element-arraybuffer (.bindBuffer gl (c/constants ::c/element-array-buffer) val)
     :framebuffer (.bindFramebuffer gl (c/constants ::c/framebuffer) val)
     :renderbuffer (.bindRenderbuffer gl (c/constants ::c/renderbuffer) val)
     :program (.useProgram gl val)
@@ -37,14 +38,15 @@
   (let [state @(:state i)
         args (-eval i (:args x))
         op (:op x)
-        gl (state :gl)]
+        gl (state :gl)
+        base-object (first args)]
 
     (eval-bindings gl state (:bindings x))
 
     (if-let [f (state op)]
       (apply f args)
-      (if-let [m (aget gl (name op))]
-        (.apply m gl (clj->js (vec (rest args))))
+      (if-let [m (aget base-object (name op))]
+        (.apply m base-object (clj->js (vec (rest args))))
         (throw (js/Error (str "No method found for: " op)))))))
 
 

@@ -9,7 +9,7 @@
     (= :uniform (:storage x)) :uniform))
 
 (defmulti init-variable
-          (fn [x params] (variable-type x)))
+          (fn [x params p] (variable-type x)))
 
 (defn default-layout [attribute]
   {:normalized? false
@@ -26,29 +26,37 @@
        (assoc (default-layout attribute) :index location))
      (gd/enableVertexAttribArray {:index location})]))
 
-(defmethod init-variable :attribute [v x]
+(defmethod init-variable :attribute [v x _]
   (let [ab (gd/arraybuffer)]
     [(bind-attribute v ab)
      (gd/bufferData ab {:data x :usage ::c/static-draw})]))
 
-(def uniform-op-map
+(def uniform-scalar-op-map
   {:bool :uniform1iv
    :float :uniform1fv
    :vec2 :uniform2fv
    :vec3 :uniform3fv
    :vec4 :uniform4fv})
 
-(defn uniform-input [type location data]
-  {:op (uniform-op-map type)
-   :args [:gl location data]})
+(def uniform-matrix-op-map
+  {:mat2 :uniformMatrix2fv
+   :mat3 :uniformMatrix3fv
+   :mat4 :uniformMatrix4fv})
 
-(defmethod init-variable :uniform [v x]
-  (uniform-input (:type v) {:tag :location :variable v} x))
+(defn uniform-input [type location data p]
+  (if-let [op (uniform-matrix-op-map type)]
+    {:op op :bindings {:program p}
+     :args [:gl location false data]}
+    {:op   (uniform-scalar-op-map type) :bindings {:program p}
+    :args [:gl location data]}))
 
-(defmethod init-variable :texture-uniform [v x]
-  {:op :uniform1i
-   :bindings x
-   :args [:gl {:tag :location :variable v} (:texture-unit x)]})
+(defmethod init-variable :uniform [v x p]
+  (uniform-input (:type v) {:tag :location :variable v} x) p)
+
+(defmethod init-variable :texture-uniform [v x p]
+  {:op       :uniform1i
+   :bindings (assoc x :program p)
+   :args     [:gl {:tag :location :variable v} (:texture-unit x)]})
 
 
 (comment
@@ -73,7 +81,8 @@
              (for [[variable the-input] inputs]
                (init-variable
                  (assoc variable :shader (:id shader))
-                 the-input))}))
+                 the-input
+                 shader))}))
 
 
 (defn draw-arrays [shader fb]
