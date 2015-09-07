@@ -5,6 +5,17 @@
 
 (defprotocol IEval (-eval [this instruction]))
 
+
+(defn bind-attribute [attribute buffer]
+  (let [location {:tag :location :variable attribute}]
+    [(gd/vertexAttribPointer
+       buffer
+       (assoc (default-layout attribute) :index location))
+     (gd/enableVertexAttribArray {:index location})]))
+
+
+
+
 (defn eval-binding [gl name spec val]
   (case name
     :texture (.bindTexture gl (c/constants (:target spec)) val)

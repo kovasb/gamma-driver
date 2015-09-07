@@ -85,14 +85,12 @@
     (.attachShader gl p (:vertex-shader v))
     (.attachShader gl p (:fragment-shader f))
     (.linkProgram gl p)
-    (if (.getProgramParameter gl p ggl/LINK_STATUS)
-      (do
-        (.useProgram gl p)
-        p)
+    (if (not (.getProgramParameter gl p ggl/LINK_STATUS))
       (throw
         (js/Error.
           (str "failed to link program: "
-               (.getProgramInfoLog gl p)))))))
+               (.getProgramInfoLog gl p))))
+      p)))
 
 
 (defn init-variable-location [shader variable]

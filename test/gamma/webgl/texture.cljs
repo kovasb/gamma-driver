@@ -10,22 +10,6 @@
     [gamma.webgl.platform.constants :as c]))
 
 
-(def a-position (g/attribute "a_Position" :vec2))
-
-(def a-tex-coord (g/attribute "a_TexCoord" :vec2))
-
-(def v-tex-coord (g/varying "v_TexCoord" :vec2 :mediump))
-
-(def u-sampler (g/uniform "u_Sampler" :sampler2D))
-
-
-(defn example-shader []
-  (shader/compile
-    {:id :texture-test
-     :vertex-shader
-                      {(g/gl-position) (g/vec4 a-position 0 1)
-                       v-tex-coord     a-tex-coord}
-     :fragment-shader {(g/gl-frag-color) (g/texture2D u-sampler v-tex-coord)}}))
 
 (defn texture-shader [a-position a-tex-coord u-sampler]
   (let [v-tex-coord (g/varying "v_TexCoord" :vec2 :mediump)]
@@ -45,6 +29,9 @@
 (defn ->float32 [x]
   (js/Float32Array.
     (clj->js (flatten x))))
+`
+(defn state-lookup [driver val]
+  (@(:state (:interpreter driver)) val))
 
 
 
@@ -97,38 +84,12 @@
       (c/constants ::c/unsigned-byte)
       screen-pixels))
 
-  (defn state-lookup [driver val]
-    (@(:state (:interpreter driver)) val))
 
 
-  (.bindFramebuffer
-    (state-lookup d :gl)
-    (c/constants ::c/framebuffer)
-    nil
-    )
-
-  (def screen-pixels (js/Uint8Array. (* 512 512 4)))
-
-  (.readPixels
-    (state-lookup d :gl)
-    0
-    0
-    512
-    512
-    (c/constants ::c/rgba)
-    (c/constants ::c/unsigned-byte)
-    screen-pixels)
 
 
-  (for [x (range 5000)] (aget screen-pixels x))
 
 
-  (def v {:tag :location, :variable {:tag :variable, :name "u_Sampler", :type :sampler2D, :storage :uniform, :shader :texture-test}})
-
-  (state-lookup d nil)
-
-  (:init d)
-  (:tag (example-shader))
 
 
   ;;;;
