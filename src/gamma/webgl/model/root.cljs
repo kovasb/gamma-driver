@@ -1,43 +1,34 @@
-(ns gamma.webgl.drivers.model
-  (:require [gamma.webgl.shader :as shader]
+(ns gamma.webgl.model.root
+  (:require [gamma.webgl.model.core :as m]
+            [gamma.webgl.model.program :as program]
+            [gamma.webgl.model.arraybuffers :as arraybuffers]
+            [gamma.webgl.model.programs :as programs]
+            [gamma.webgl.model.bindings :as bindings]
             [gamma.webgl.platform.constants :as c]))
 
 
 
+(defrecord Root [parts gl]
+  m/IModel
+  (conform [this val]
+    (m/delegate m/conform @parts val))
+  (resolve [this val]
+    (@parts val)))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+(defn root [a gl]
+  (let [r (->Root a gl)]
+    (swap! a merge {:arraybuffers (arraybuffers/->Arraybuffers r (atom {}))
+                    :bindings (bindings/->GlobalBindings r (atom {}))
+                    ;:texture-units (texture-units r)
+                    :programs (programs/->Programs r (atom {}))})
+    r))
 
 
 (comment
-  (def a (atom {}))
-
-  (def r (->Root a nil))
-
-  (swap! a merge {:arraybuffers (->Arraybuffers r (atom {}))
-                  :bindings (->GlobalBindings r (atom {}))
-                  ;:texture-units (texture-units r)
-                  :programs (->Programs r (atom {}))})
-
+  (require 'gamma.webgl.model.root :reload)
 
 
   )
-
 
 (comment
 
@@ -53,6 +44,7 @@
 
   (require '[gamma.api :as g])
   (require '[gamma.webgl.platform.constants :as c])
+  (require '[gamma.webgl.shader :as shader])
 
   (def pos (g/attribute "posAttr" :vec2))
 
@@ -90,13 +82,17 @@
   (def gl (get-context "gl-canvas"))
   (def model (root (atom {}) gl))
 
+  @(:parts model)
+
+
   (gamma.webgl.shader/install-shader (:gl model) s)
 
+  (m/resolve-in model [:arraybuffers ab])
 
 
-  (resolve-in model [:arraybuffers ab :object])
-  (resolve-in model [:arraybuffers ab :data])
-  (resolve-in model [:programs s :object])
+  (m/resolve-in model [:arraybuffers ab :object])
+  (m/resolve-in model [:arraybuffers ab :data])
+  (m/resolve-in model [:programs s :object])
 
   (conform
     (resolve-in model [:arraybuffers ab])
@@ -111,17 +107,19 @@
 
 
   (do
-    (conform model {:arraybuffers {ab {:data x}}})
-    (conform
+    (m/conform model {:arraybuffers {ab {:data x}}})
+    (m/conform
       model
       {:programs
        {s {:attributes {pos {:arraybuffer ab
                              :layout      (default-layout pos)}}}}})
-    (conform model {:bindings {:program s}})
+    (m/conform model {:bindings {:program s}})
     (.drawArrays
       gl (c/constants ::c/triangles) 0 3)
 
     )
+
+  
 
 
 
