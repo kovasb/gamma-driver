@@ -162,7 +162,7 @@
     (.activeTexture gl (:texture-unit spec))
     (.bindTexture gl (constant (:target (:texture spec))) to)
     (swap! model assoc-in [:texture-units texture-unit] texture)
-    
+
 
 
 
@@ -222,3 +222,61 @@
   )
 
 
+
+(defprotocol IModel
+  (resolve [model root v])
+  (assert [model root k v]))
+
+(assign [this property ])
+
+
+(defrecord BindingsModel []
+  (assert []
+    ;; check if already set
+    ;; if need to set -
+    ;; -- resolve object & bind gl state
+    ;; then assign new value
+
+    )
+  )
+
+(defrecord ProgramsModel [l path]
+  IModel
+  (assign [this r prop val]
+    (swap! r assoc-in path l val))
+  (resolve [this r v]
+    ;; if p is there, return
+    ;; if not there, create new p, assign & return
+    ;; nb we are returning type not just a map
+    ;; consumer will want to resolve p's constituents
+
+    )
+  (assert [this r v]
+    ;; for each kv
+    ;; resolve k
+
+    ))
+
+
+(defrecord ProgramModel []
+  (resolve [this r v]
+
+    )
+  (assert [this r v]
+    ;; attributes
+    ;; uniforms
+    ;; texture bindings
+
+    ))
+
+
+(defrecord AttributesModel [p vlocations])
+
+
+
+(resolve model root x)
+(assert model root key val)
+(assert model root :current-program val)
+-> (resolve root (resolve root (resolve root :programs) program) :object)
+
+(assert Programs root )
