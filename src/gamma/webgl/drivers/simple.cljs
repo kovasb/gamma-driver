@@ -60,22 +60,23 @@
 
   )
 
-{:objects {id object id object}
- :values {id value}
- :shaders {id
-           {:attribute-bindings {:position x}
-            :uniform-values x
-            :texture-bindings x
-            :variable-locations {:position 1}
-            }}
- :bound-shader id
- :bound-element-arraybuffer id
- :buffer-state x
- :operations
- {op {:cached true}}
- :texture-units {0 tex}
+(comment
+  {:objects                   {id object id2 object}
+  :values                    {id value}
+  :shaders                   {id
+                              {:attribute-bindings {:position x}
+                               :uniform-values     x
+                               :texture-bindings   x
+                               :variable-locations {:position 1}
+                               }}
+  :bound-shader              id
+  :bound-element-arraybuffer id
+  :buffer-state              x
+  :operations
+                             {op {:cached true}}
+  :texture-units             {0 tex}
 
- }
+  })
 
 ;; want to refer to attribs by keyword rather by val
 

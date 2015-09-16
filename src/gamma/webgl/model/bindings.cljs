@@ -16,6 +16,13 @@
             (.useProgram
               (:gl root)
               (m/resolve-in root [:programs v :object]))
+            (swap! parts assoc k v))
+          :framebuffer
+          (when (not= v (m/resolve this k))
+            (.bindFramebuffer
+              (:gl root)
+              (c/constants :framebuffer)
+              (m/resolve-in root [:framebuffers v :object]))
             (swap! parts assoc k v))))
       nil
       val)))

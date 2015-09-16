@@ -1,5 +1,6 @@
 (ns gamma.webgl.api
-  (:require [gamma.webgl.platform.constants :as c]))
+  (:require [gamma.webgl.platform.constants :as c]
+            [gamma.webgl.model.core :as m]))
 
 (def id (atom 0))
 
@@ -11,8 +12,25 @@
 (defn element-arraybuffer []
   {:tag :element-arraybuffer :id (nid)})
 
-(defn texture []
-  {:tag :texture :id (nid) :target ::c/texture-2d})
+(defn texture
+  ([] {:tag :texture :id (nid)})
+  ([x] (merge (texture) x)))
+
+(defn texture-image [x]
+  (assoc (texture x)
+    :target :texture-2d
+    :texture-type :image))
+
+(defn texture-pixels [x]
+  (assoc (texture x)
+    :target :texture-2d
+    :texture-type :pixels))
+
+(comment
+  (make-fb w h :depth-stencil)
+  (framebuffer {:attachments {:color-attachment0 (texture-pixels)}})
+
+  )
 
 (defn framebuffer []
   {:tag :framebuffer :id (nid)})
@@ -23,171 +41,116 @@
 (defn input []
   {:tag :input :id (nid)})
 
-(defn op
-  ([o args] (op nil args))
-  ([o bindings args]
-   (if bindings
-     {:op o :args args :bindings bindings}
-     {:op   o
-     :args args})))
+(comment
+  ;; renderbuffer spec
 
-;; Per-Fragment operations
-;; Implicit parameters unknown
-
-;(defn blendColor [args])
+  {:internalformat x :width x :height y}
 
 
-;; Whole Framebuffer Operations
+  )
 
-;(defn clear [fb args])
-;(defn clearColor [fb args])
-
-;; Buffer Objects
-
-(defn bufferData [buffer {:keys [data usage]}]
-  (let [target ({:arraybuffer         ::c/array-buffer
-                 :element-arraybuffer ::c/element-array-buffer}
-                 (:tag buffer))]
-    {:op       :bufferData
-     :bindings {(:tag buffer) buffer}
-     :args     [:gl target data usage]}))
-
-;(defn bufferSubData [buffer args])
-
-;; View and Clip
-;; Implicit parameters unknown
-
-;(defn viewport [args])
-
-;; Rasterization
-;; Implicit parameters unknown
-
-;(defn cullFace [args])
-
-;; Uniforms and attributes
-
-(defn enableVertexAttribArray [{:keys [index]}]
-  {:op   :enableVertexAttribArray
-   :args [:gl index]})
+(comment
+  {:texture-type :image|pixels
+   :sampler
+                 {:texture-wrap-s :repeat
+                  :texture-wrap-t :repeat
+                  :texture-min-filter :linear
+                  :texture-mag-filter :linear}
+   :target x
+   :format x
+   :type x
+   :height x
+   :width x})
 
 
-(defn vertexAttribPointer [buffer {:keys [index size type normalized? stride offset]}]
-  {:op       :vertexAttribPointer
-   :bindings {:arraybuffer buffer}
-   :args     [:gl index size type normalized? stride offset]})
+(defn buffer-data [buffer data]
+  [{:arraybuffers {buffer data}}])
 
-(defn vertexAttribDivisorANGLE [buffer {:keys [index count]}]
-  {:op :vertexAttribDivisorANGLE
-   :bindings {:arraybuffer buffer}
-   :args [{:tag :extension :extension "ANGLE_instanced_arrays"} index count]})
+(defn texture-data [tex data]
+  [{:texture-units {0 {tex {:data data}}}}])
 
-(defn drawArraysInstancedANGLE [program framebuffer {:keys [mode first count primcount]}]
-  {:op :drawArraysInstancedANGLE
-   :bindings {:program program :framebuffer framebuffer}
-   :args [{:tag :extension :extension "ANGLE_instanced_arrays"} mode first count primcount]})
-
-
-;; Texture Objects
-
-;(defn texImage2D [id texture args])
-
-;; Writing to the Draw Buffer
-
-(defn drawArrays [program framebuffer {:keys [mode first count]}]
-  {:op       :drawArrays
-   :bindings {:program program :framebuffer framebuffer}
-   :args     [:gl mode first count]})
-
-
-(defn drawElements [{:keys [program framebuffer element-arraybuffer]}
-                    {:keys [mode count type offset]}]
-  {:op :drawElements
-   :bindings {:program program :framebuffer framebuffer :element-arraybuffer element-arraybuffer}
-   :args [:gl mode count type offset]})
-
-
-;; Special Functions
-
-;(defn enable [args])
-;(defn disable [args])
-;(defn pixelStorei [args])
-
-;; Renderbuffer Objects
-
-;(defn renderbufferStorage [rb args])
-
-;; Read Back Pixels
-
-;(defn readPixels [fb args])
-
-;; Framebuffer Objects
-
-;(defn framebufferRenderbuffer [fb args])
-;(defn framebufferTexture2D [fb args])
-
-(defn framebufferRenderbuffer [bindings {:keys [attachment renderbuffer]}]
-  {:op :framebufferRenderbuffer
-   :bindings bindings
-   :args [:gl ::c/framebuffer attachment ::c/renderbuffer renderbuffer]})
-
-(defn framebufferTexture2D [bindings {:keys [attachment texture]}]
-  {:op :framebufferTexture2D
-   :bindings bindings
-   :args [:gl ::c/framebuffer attachment (:target texture) texture 0]})
-
-(defn renderbufferStorage [bindings {:keys [internalformat width height]}]
-  {:op :renderbufferStorage
-   :bindings bindings
-   :args [:gl ::c/renderbuffer internalformat width height]})
+(comment
+  [:texture-units 0]
+  [:texture-units 0 tex :data]
+  [:programs p :attributes]
+  [:programs p :uniforms])
 
 
 
-;; Util
 
+
+(defprotocol IOp
+  (exec! [this args]))
+
+(defrecord BufferData [buffer-model]
+  IOp
+  (exec! [this args]
+    (m/conform buffer-model args)))
+
+(defn buffer-data [model buffer]
+  (->BufferData (m/resolve-in model [:arraybuffers buffer])))
+
+(defrecord DrawArrays [gl setup-fn uniforms-model]
+  IOp
+  (exec! [this args]
+    (setup-fn)
+    (m/conform uniforms-model (:uniforms args))
+    (.drawArrays
+      gl
+      (c/constants
+        (:mode args))
+      (:start args)
+      (:count args))))
+
+(defn draw-arrays-setup [model bindings]
+  (let [{:keys [program attributes]} bindings
+        program-binding (m/resolve-in model [:bindings])
+        attributes-model (m/resolve-in model [:programs program :attributes])]
+    (fn []
+      (m/conform program-binding {:program program})
+      (m/conform attributes-model attributes))))
+
+
+(defn draw-arrays [model bindings]
+  (->DrawArrays
+    (:gl model)
+    (draw-arrays-setup model bindings)
+    (m/resolve-in model [:programs (:program bindings) :uniforms])))
 
 
 
 
 (comment
-  (case type
-    :bool [:uniform1iv :gl location data]
-    :bvec2 [:uniform2iv :gl data location ]
-    :bvec3 [:uniform3iv :gl location data ]
-    :bvec4 [:uniform4iv :gl location data ]
-    :float [:uniform1fv :gl location data ]
-    :vec2 [:uniform2fv :gl location data ]
-    :vec3 [:uniform3fv :gl location data ]
-    :vec4 [:uniform4fv :gl location data ]
-    :int [:uniform1iv :gl location data ]
-    :ivec2 [:uniform2iv :gl location data ]
-    :ivec3 [:uniform3iv :gl location data ]
-    :ivec4 [:uniform4iv :gl location data ]
-    :mat2 [:uniformMatrix2fv :gl location false data ]
-    :mat3 [:uniformMatrix3fv :gl location false data ]
-    :mat4 [:uniformMatrix4fv :gl location false data ]
-    nil))
+  (defn draw-arrays [b params]
+   (let [{:keys [program framebuffer attributes uniforms]}]
+     [{:bindings {:program program}}
+
+      {:texture-units {0 tex}}
+      {:programs {p {:attributes attributes
+                     :uniforms   uniforms}}}])
+
+   ))
 
 (comment
-  (defn bind-attribute [attr buffer]
-    [::bind-attribute attr buffer])
 
-  (defn bind-arraybuffer [buffer data]
-    [::bind-arraybuffer buffer data])
+  (bufferData buff data)
+  ;; pass comparison fn here rather than in constructor?
+  ;; could also pass data getter and breadcrumbfn in
+  (textureData tex data)
 
-  (defn bind-uniform [uniform data]
-    [::bind-uniform uniform data])
+  (drawArrays
+    {:program p
+     :framebuffer f
+     :attributes a
+     :uniforms x}
+    {:start 0 :count 10})
 
-  (defn bind-texture-uniform [uniform data]
-    [::bind-texture-uniform uniform data])
 
-  (defn bind-framebuffer [fb]
-    [::bind-framebuffer fb])
 
-  (defn draw-arrays [start count]
-    [::draw-arrays start count])
+  )
 
-  (defn current-shader [s]
-    [::current-shader s]))
+
+
 
 
 
