@@ -6,24 +6,27 @@
 
 
 (defn attachments [root x]
-  (reduce-kv
-    (fn [_ k v]
-      (case (:tag v)
-        :texture
-        (.framebufferTexture2D
-          (c/constants :framebuffer)
-          (c/constants k)
-          (c/constants :texture2d)
-          (m/resolve-in root [:textures x :object])
-          0)
-        :renderbuffer
-        (.framebufferRenderbuffer
-          (c/constants :framebuffer)
-          (c/constants k)
-          (c/constants :renderbuffer)
-          (m/resolve-in root [:renderbuffers x :object]))))
-    nil
-    x))
+  (let [gl (:gl root)]
+    (reduce-kv
+     (fn [_ k v]
+       (case (:tag v)
+         :texture
+         (.framebufferTexture2D
+           gl
+           (c/constants :framebuffer)
+           (c/constants k)
+           (c/constants :texture-2d)
+           (m/resolve-in root [:textures v :object])
+           0)
+         :renderbuffer
+         (.framebufferRenderbuffer
+           gl
+           (c/constants :framebuffer)
+           (c/constants k)
+           (c/constants :renderbuffer)
+           (m/resolve-in root [:renderbuffers v :object]))))
+     nil
+     x)))
 
 
 (defrecord Framebuffer [root parts]

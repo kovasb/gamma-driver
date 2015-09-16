@@ -52,7 +52,7 @@
 (defrecord TexturePixels [root parts]
   m/IModel
   (conform [this val]
-    (if-let [d (:data val)]
+    (let [d (:data val)]
       (let [{:keys [target format type width height]} @parts
             gl (:gl root)]
         (do

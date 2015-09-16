@@ -32,11 +32,13 @@
 
   )
 
-(defn framebuffer []
-  {:tag :framebuffer :id (nid)})
+(defn framebuffer
+  ([] {:tag :framebuffer :id (nid)})
+  ([x] (merge (framebuffer) x)))
 
-(defn renderbuffer []
-  {:tag :renderbuffer :id (nid)})
+(defn renderbuffer
+  ([] {:tag :renderbuffer :id (nid)})
+  ([x] (merge (renderbuffer) x)))
 
 (defn input []
   {:tag :input :id (nid)})
@@ -103,11 +105,11 @@
       (:count args))))
 
 (defn draw-arrays-setup [model bindings]
-  (let [{:keys [program attributes]} bindings
+  (let [{:keys [program attributes framebuffer]} bindings
         program-binding (m/resolve-in model [:bindings])
         attributes-model (m/resolve-in model [:programs program :attributes])]
     (fn []
-      (m/conform program-binding {:program program})
+      (m/conform program-binding {:program program :framebuffer framebuffer})
       (m/conform attributes-model attributes))))
 
 
@@ -117,7 +119,13 @@
     (draw-arrays-setup model bindings)
     (m/resolve-in model [:programs (:program bindings) :uniforms])))
 
+(defrecord TextureData [model tex-spec]
+  IOp
+  (exec! [this args]
+    (m/conform model {:texture-units {(:texture-unit tex-spec) {(:texture tex-spec) args}}})))
 
+(defn texture-data [model spec]
+  (->TextureData model spec))
 
 
 (comment

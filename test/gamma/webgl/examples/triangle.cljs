@@ -49,3 +49,38 @@
   )
 
 
+(comment
+  ;; UNIFORMS
+
+  (def pos (g/attribute "posAttr" :vec2))
+  (def color (g/uniform "u_Color" :vec4 :mediump))
+
+  (defn example-shader []
+    (shader/compile
+      {:id              :hello-triangle
+       :vertex-shader   {(g/gl-position) (g/vec4 pos 0 1)}
+       :fragment-shader {(g/gl-frag-color) color}
+       :precision {:float :mediump}}))
+
+  (def s (example-shader))
+
+  (let [gl (get-context "gl-canvas")
+        p (example-shader)
+        ab (api/arraybuffer)
+        model (root/root (atom {}) gl)
+        bd (api/buffer-data model ab)
+        draw (api/draw-arrays
+               model
+               {:program     p
+                :framebuffer nil
+                :attributes  {pos {:arraybuffer ab :layout (default-layout pos)}}})]
+    (api/exec! bd {:data [[-1 -1] [0 1] [0 -1]]})
+    (api/exec! draw {:start 0 :count 3 :mode :triangles
+                     :uniforms {color #js [0 1 0 1]}}))
+
+
+
+
+
+
+  )

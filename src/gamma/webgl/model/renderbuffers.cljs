@@ -15,7 +15,7 @@
 
 (defn create-renderbuffer [root val]
   (let [gl (:gl root)
-        obj (.createBuffer gl)
+        obj (.createRenderbuffer gl)
         {:keys [internalformat width height]} val]
     (.bindRenderbuffer
       gl

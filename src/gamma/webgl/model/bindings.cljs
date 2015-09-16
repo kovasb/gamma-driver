@@ -23,7 +23,9 @@
             (.bindFramebuffer
               (:gl root)
               (c/constants :framebuffer)
-              (m/resolve-in root [:framebuffers v :object]))
+              (if (nil? v)
+                nil
+                (m/resolve-in root [:framebuffers v :object])))
             (swap! parts assoc k v))))
       nil
       val)))
