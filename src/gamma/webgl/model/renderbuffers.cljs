@@ -27,7 +27,7 @@
       (c/constants internalformat)
       width
       height)
-    (->Renderbuffer root (atom (assoc val :object o)))))
+    (->Renderbuffer root (atom (assoc val :object obj)))))
 
 
 

@@ -12,7 +12,7 @@
 (comment
   (resolve
     model
-    {:framebuffers {fb}})
+    {:framebuffers {fb fb}})
 
   {:framebuffers
    {fb
@@ -21,7 +21,7 @@
      {:color0 tex-spec
       :depth renderbuffer-spec}}}
    :renderbuffers
-   {rb {:object x ...}}}
+   {rb {:object x}}}
 
   (create-framebuffer root
     {:tag :framebuffer

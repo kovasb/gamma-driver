@@ -1,5 +1,6 @@
 (ns gamma.webgl.model.bindings
-  (:require [gamma.webgl.model.core :as m]))
+  (:require [gamma.webgl.model.core :as m]
+            [gamma.webgl.platform.constants :as c]))
 
 
 
