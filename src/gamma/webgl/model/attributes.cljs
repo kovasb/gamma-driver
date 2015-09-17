@@ -33,6 +33,6 @@
     (@parts val))
   (conform [this val]
     (let [p @parts]
-      (when (not= val p)
+      (when true                                            ;(not= val p)
         (bind-attributes root val variable-locations)
         (reset! parts val)))))

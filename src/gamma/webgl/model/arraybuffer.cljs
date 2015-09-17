@@ -25,7 +25,7 @@
       (fn [_ k v]
         (let [p @parts]
           (case k
-            :data (when (not (compare (:data p) v))
+            :data (when true                                ;(not (compare (:data p) v))
                     (arraybuffer-data (:gl root) (:object p) (:mode p) (bufferdata-fn v))
                     (swap! parts assoc :data v)))))
       nil

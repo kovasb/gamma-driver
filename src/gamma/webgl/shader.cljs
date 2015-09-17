@@ -1,9 +1,6 @@
 (ns gamma.webgl.shader
   (:require [gamma.webgl.api :as api]
             [goog.webgl :as ggl]
-    ;[gamma-driver.impl.resource :as resource]
-            [gamma.webgl.compiler.uniform :as uniform]
-            [gamma.webgl.compiler.attribute :as attribute]
             [gamma.program :as p]))
 
 

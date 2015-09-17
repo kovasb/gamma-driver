@@ -75,8 +75,11 @@
   (def gl (get-context "gl-canvas"))
   (def model (root/root (atom {}) gl))
 
-  (def tex-data (api/texture-data model {:texture-unit 0
-                                   :texture (get-in fb [:attachments :color-attachment0])}))
+  (def tex-data
+    (api/texture-data
+      model {:texture-unit 0
+
+             :texture (get-in fb [:attachments :color-attachment0])}))
   (api/exec! tex-data {:data nil})
   (draw-to-fb model fb)
 
@@ -115,7 +118,7 @@
                 :framebuffer nil
                 :attributes  {a-position  {:arraybuffer ab-pos :layout (default-layout a-position)}
                               a-tex-coord {:arraybuffer ab-coord :layout (default-layout a-tex-coord)}}})]
-    (api/exec! bd-pos {:data [[-0.5 0.5] [-1 -1] [1 1]
+    (api/exec! bd-pos {:data [[-1 1] [-1 -1] [1 1]
                               [-1 -1] [1 1] [1 -1]]})
     (api/exec! bd-coord {:data [[0 1] [0 0] [1 1]
                                 [0 0] [1 1] [1 0]]})
@@ -157,4 +160,85 @@
 
 
 
+(comment
+  ;; composing programs
 
+  (require '[gamma.webgl.examples.triangle :as examples.triangle])
+  (require '[gamma.webgl.examples.texture :as examples.texture])
+
+    (def gl (get-context "gl-canvas"))
+
+    (def model (root/root (atom {}) gl))
+
+  (let [fb (->framebuffer 512 512)
+
+        tex {:texture-unit 0 :texture (get-in fb [:attachments :color-attachment0])}
+
+        texture-init (api/texture-data model tex)
+        texture-draw (examples.texture/texture-draw model nil tex)
+        triangle-draw (examples.triangle/triangle-draw model fb)]
+    (api/exec! texture-init {:data nil})
+
+    (api/exec! triangle-draw {:data [[-0.5 -0.5] [0 1] [0 -1]]
+                              :draw {:start 0 :count 3 :mode :triangles}})
+    (api/exec! texture-draw {:draw {:start 0 :count 6 :mode :triangles}
+                             :positions {:data [[-1 1] [-1 -1] [1 1]
+                                                [-1 -1] [1 1] [1 -1]]}
+                             :texture-coordinates {:data [[0 1] [0 0] [1 1]
+                                                          [0 0] [1 1] [1 0]]}}))
+
+  (def ops
+    (let [fb (->framebuffer 512 512)
+
+         tex {:texture-unit 0 :texture (get-in fb [:attachments :color-attachment0])}
+
+         texture-init (api/texture-data model tex)
+         texture-draw (examples.texture/texture-draw model nil tex)
+         triangle-draw (examples.triangle/triangle-draw model fb)]
+     {:texture-init texture-init :texture-draw texture-draw :triangle-draw triangle-draw}))
+
+  (api/exec! (:texture-init ops) {:data nil})
+
+  (api/exec! (:triangle-draw ops) {:data [[-0.5 -0.5] [0 1] [0 -1]]
+                            :draw {:start 0 :count 3 :mode :triangles}})
+  (api/exec! (:texture-draw ops) {:draw {:start 0 :count 6 :mode :triangles}
+                           :positions {:data [[-1 1] [-1 -1] [1 1]
+                                              [-1 -1] [1 1] [1 -1]]}
+                           :texture-coordinates {:data [[0 1] [0 0] [1 1]
+                                                        [0 0] [1 1] [1 0]]}})
+
+  (m/resolve-in model [:bindings :program])
+
+
+
+  (defn two-pass-draw [pass1 fb]
+    (let [tex {:texture-unit 0 :texture (get-in fb [:attachments :color-attachment0])}
+          texture-init (api/texture-data model tex)
+          texture-draw (examples.texture/texture-draw model nil tex)]
+      (reify
+        api/IOp
+        (exec! [this args]
+          (api/exec! texture-init {:data nil})
+          (api/exec! pass1 (:pass1 args))
+          (api/exec! texture-draw (:pass2 args))))))
+
+  (def two-pass-draw-op (let [fb (->framebuffer 512 512)]
+                       (two-pass-draw
+                        (examples.triangle/triangle-draw model fb)
+                        fb)))
+
+  (api/exec! two-pass-draw-op
+             {:pass1 {:data [[-0.5 -1] [0 1] [0 -1]]
+                      :draw {:start 0 :count 3 :mode :triangles}}
+              :pass2 {:draw {:start 0 :count 6 :mode :triangles}
+                      :positions {:data [[-1 1] [-1 -1] [1 1]
+                                         [-1 -1] [1 1] [1 -1]]}
+                      :texture-coordinates {:data [[0 1] [0 0] [1 1]
+                                                   [0 0] [1 1] [1 0]]}}
+              })
+
+
+
+
+
+  )
